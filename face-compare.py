@@ -126,6 +126,19 @@ def _extract_feature(cv2, detector, recognizer, image_path: Path):
     return feat
 
 
+def _feature_stats(feat, head_n: int) -> dict:
+    # feat is typically a numpy array shape (1, d) or (d,)
+    flat = feat.reshape(-1).astype(float)
+    vec = flat.tolist()
+    l2 = math.sqrt(sum((x * x) for x in vec))
+    head_n = max(0, int(head_n))
+    return {
+        "length": len(vec),
+        "l2_norm": l2,
+        "head": vec[:head_n],
+    }
+
+
 def _cosine_to_score(sim: float) -> float:
     # OpenCV SFace cosine similarity is typically in [0, 1]. Clamp and scale to 0~100.
     if sim != sim:  # NaN
@@ -182,6 +195,12 @@ def main() -> int:
         action="store_true",
         help="Output JSON to stdout",
     )
+    parser.add_argument(
+        "--dump-feature",
+        type=int,
+        default=0,
+        help="Print feature stats (length, L2 norm, first N dims) for each image",
+    )
 
     args = parser.parse_args()
 
@@ -237,6 +256,10 @@ def main() -> int:
         "same_person_likelihood_label": _likelihood_label(likelihood),
     }
 
+    if args.dump_feature and args.dump_feature > 0:
+        payload["source_feature"] = _feature_stats(feat1, args.dump_feature)
+        payload["target_feature"] = _feature_stats(feat2, args.dump_feature)
+
     if args.json:
         print(json.dumps(payload, ensure_ascii=False, indent=2))
     else:
@@ -247,6 +270,15 @@ def main() -> int:
             "Same person likelihood (estimated): "
             f"{likelihood_pct:.1f}% ({_likelihood_label(likelihood)})"
         )
+        if args.dump_feature and args.dump_feature > 0:
+            s = _feature_stats(feat1, args.dump_feature)
+            t = _feature_stats(feat2, args.dump_feature)
+            print(
+                f"Source feature: len={s['length']}, l2={s['l2_norm']:.4f}, head={s['head']}"
+            )
+            print(
+                f"Target feature: len={t['length']}, l2={t['l2_norm']:.4f}, head={t['head']}"
+            )
 
     return 0
 
