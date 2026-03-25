@@ -5,6 +5,7 @@ import shutil
 import shlex
 import subprocess
 import sys
+import time
 
 
 def _read_kv_config(path: Path) -> dict[str, str]:
@@ -254,8 +255,71 @@ def _build_facefusion_command(
         "--face-mask-padding",
         _parse_tokens(_get_config_value(config, "FaceMaskPadding", "face_mask_padding")),
     )
+
+    log_level = _get_config_value(config, "LogLevel", "log_level")
+    if log_level:
+        _append_option(command, "--log-level", log_level)
+
     command.extend(_parse_tokens(_get_config_value(config, "ExtraArgs", "extra_args")))
     return command
+
+
+def _quote_command(command: list[str]) -> str:
+    return " ".join(shlex.quote(part) for part in command)
+
+
+def _tail_text(text: str, max_lines: int = 120, max_chars: int = 12_000) -> str:
+    if not text:
+        return ""
+    lines = text.splitlines()
+    tail = "\n".join(lines[-max_lines:])
+    if len(tail) > max_chars:
+        tail = tail[-max_chars:]
+    return tail
+
+
+def _find_latest_failed_job(jobs_path: Path, started_at: float) -> Path | None:
+    failed_dir = jobs_path / "failed"
+    if not failed_dir.exists():
+        return None
+
+    candidates = list(failed_dir.glob("*.json"))
+    if not candidates:
+        return None
+
+    recent = [p for p in candidates if p.stat().st_mtime >= started_at - 2]
+    pool = recent or candidates
+    return max(pool, key=lambda p: p.stat().st_mtime)
+
+
+def _analyse_image_with_facefusion(python_executable: str, facefusion_cwd: Path, env: dict[str, str], image_path: Path) -> bool | None:
+    if not image_path.exists():
+        return None
+
+    code = (
+        "from facefusion import content_analyser, state_manager; "
+        "state_manager.init_item('execution_device_ids',[0]); "
+        "state_manager.init_item('execution_providers',['cpu']); "
+        "state_manager.init_item('download_providers',['github','huggingface']); "
+        "print('1' if content_analyser.analyse_image(r'''" + str(image_path) + "''') else '0')"
+    )
+    try:
+        probe = subprocess.run(
+            [python_executable, "-c", code],
+            cwd=str(facefusion_cwd),
+            capture_output=True,
+            env=env,
+            text=True,
+        )
+    except OSError:
+        return None
+
+    out = (probe.stdout or "").strip()
+    if out == "1":
+        return True
+    if out == "0":
+        return False
+    return None
 
 
 def main() -> int:
@@ -309,6 +373,7 @@ def main() -> int:
         temp_path,
     )
 
+    started_at = time.time()
     completed = subprocess.run(
         command,
         cwd=str(script_path.parent),
@@ -317,13 +382,59 @@ def main() -> int:
         text=True,
     )
     if completed.returncode != 0:
-        details = (completed.stderr or completed.stdout or "").strip()
-        if not details:
-            details = f"FaceFusion exited with code {completed.returncode}"
-        raise RuntimeError(details)
+        latest_failed_job = _find_latest_failed_job(jobs_path, started_at)
+        parts: list[str] = []
+        parts.append("[face-swap] FaceFusion failed")
+        parts.append(f"Exit code: {completed.returncode}")
+        parts.append(f"CWD: {script_path.parent}")
+        parts.append("Command:")
+        parts.append(_quote_command(command))
+
+        target_flagged = _analyse_image_with_facefusion(
+            python_executable,
+            script_path.parent,
+            _build_subprocess_env(base_dir, config),
+            target_path,
+        )
+        if target_flagged is True:
+            parts.append("Content analyser: target flagged (may be blocked)")
+        elif target_flagged is False:
+            parts.append("Content analyser: target not flagged")
+
+        if latest_failed_job:
+            parts.append(f"Latest failed job: {latest_failed_job}")
+
+        stdout_tail = _tail_text(completed.stdout or "")
+        stderr_tail = _tail_text(completed.stderr or "")
+        if stdout_tail:
+            parts.append("--- stdout (tail) ---")
+            parts.append(stdout_tail)
+        if stderr_tail:
+            parts.append("--- stderr (tail) ---")
+            parts.append(stderr_tail)
+
+        raise RuntimeError("\n".join(parts).strip())
 
     if not output_path.exists():
-        raise RuntimeError(f"FaceFusion finished without creating output: {output_path}")
+        latest_failed_job = _find_latest_failed_job(jobs_path, time.time())
+        parts = [
+            "[face-swap] FaceFusion finished without creating output",
+            f"Output: {output_path}",
+            f"CWD: {script_path.parent}",
+            "Command:",
+            _quote_command(command),
+        ]
+        if latest_failed_job:
+            parts.append(f"Latest failed job: {latest_failed_job}")
+        stdout_tail = _tail_text(completed.stdout or "")
+        stderr_tail = _tail_text(completed.stderr or "")
+        if stdout_tail:
+            parts.append("--- stdout (tail) ---")
+            parts.append(stdout_tail)
+        if stderr_tail:
+            parts.append("--- stderr (tail) ---")
+            parts.append(stderr_tail)
+        raise RuntimeError("\n".join(parts).strip())
 
     print(f"Source: {source_path}")
     print(f"Target: {target_path}")
