@@ -58,13 +58,38 @@ def _resolve_config_path(
     return (base_dir / p).resolve()
 
 
-def _load_prompt_from_config(base_dir: Path, config: dict[str, str]) -> str:
-    template_path = _resolve_config_path(base_dir, config.get("Prompt"), "prompt/c1.txt")
+def _load_prompt_from_config(base_dir: Path, config: dict[str, str]) -> tuple[str, Path]:
+    template_path = _resolve_config_path(
+        base_dir, config.get("Prompt"), "prompt/c1.txt"
+    )
 
     with open(template_path, "r", encoding="utf-8") as f:
         template_text = f.read().strip()
 
-    return _render_prompt_template(template_text, config)
+    return _render_prompt_template(template_text, config), template_path
+
+
+def _pick_output_ext(item: dict) -> str:
+    ext = "png"
+    mime_type = item.get("mime_type")
+    if mime_type == "image/jpeg":
+        ext = "jpg"
+    elif mime_type == "image/webp":
+        ext = "webp"
+    return ext
+
+
+def _pick_unique_output_path(out_dir: Path, stem: str, ext: str) -> Path:
+    candidate = out_dir / f"{stem}.{ext}"
+    if not candidate.exists():
+        return candidate
+
+    i = 1
+    while True:
+        candidate = out_dir / f"{stem}-{i}.{ext}"
+        if not candidate.exists():
+            return candidate
+        i += 1
 
 
 def _read_api_key(api_key_file: str | None) -> str:
@@ -214,8 +239,8 @@ def main() -> int:
         "--out",
         default="",
         help=(
-            "Output path. Default: <OutFolder>/output-<timestamp>.<ext> where OutFolder "
-            "is read from prompt.config (OutFolder=...)."
+            "Output path. Default: same folder as input image, with filename based on "
+            "prompt template (e.g. Prompt=c1.txt -> c1.jpg). If exists, uses -1, -2..."
         ),
     )
     parser.add_argument(
@@ -262,14 +287,16 @@ def main() -> int:
         )
 
     if not args.prompt:
-        args.prompt = _load_prompt_from_config(base_dir, config)
+        args.prompt, prompt_template_path = _load_prompt_from_config(base_dir, config)
+    else:
+        prompt_template_path = _resolve_config_path(base_dir, config.get("Prompt"), "prompt/c1.txt")
 
     if not args.api_key_file:
         args.api_key_file = str(
             _resolve_config_path(base_dir, config.get("Key"), "image2image2026.txt")
         )
 
-    out_folder = _resolve_config_path(base_dir, config.get("OutFolder"), "images")
+    source_dir = Path(args.input).resolve().parent
 
     if not os.path.exists(args.input):
         raise FileNotFoundError(f"Input image not found: {args.input}")
@@ -312,14 +339,9 @@ def main() -> int:
     item = data[0]
 
     if not args.out:
-        ts = time.strftime("%Y%m%d-%H%M%S")
-        ext = "png"
-        mime_type = item.get("mime_type")
-        if mime_type == "image/jpeg":
-            ext = "jpg"
-        elif mime_type == "image/webp":
-            ext = "webp"
-        args.out = str(out_folder / f"output-{ts}.{ext}")
+        ext = _pick_output_ext(item)
+        stem = prompt_template_path.stem if prompt_template_path else "output"
+        args.out = str(_pick_unique_output_path(source_dir, stem, ext))
 
     os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
 
