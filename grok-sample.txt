@@ -1,0 +1,18 @@
+curl https://api.x.ai/v1/chat/completions \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer xai-FRrPyuQD1gNOysraROUXsNNNdfvlVSpm15V9GdkAhT5vOFxBXDOMuDhBV8f6S5dt7l1sASdnkoTfADYz" \
+    -d '{
+      "messages": [
+        {
+          "role": "system",
+          "content": "You are a test assistant."
+        },
+        {
+          "role": "user",
+          "content": "Testing. Just say hi and hello world and nothing else."
+        }
+      ],
+      "model": "grok-4-1-fast",
+      "stream": false,
+      "temperature": 0
+    }'
