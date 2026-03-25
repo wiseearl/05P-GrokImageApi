@@ -205,3 +205,8 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+image2image2026.txt
+i2i-jack2025.txt
+/log
+/images

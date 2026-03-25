@@ -197,8 +197,10 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="xAI Grok image-to-image edit")
     parser.add_argument(
         "--input",
-        default=os.path.join("images", "pic-mr-Kamiki.jpg"),
-        help="Input image path",
+        default=None,
+        help=(
+            "Input image path. Default: read from prompt.config (Source=...)."
+        ),
     )
     parser.add_argument(
         "--prompt",
@@ -253,6 +255,11 @@ def main() -> int:
     base_dir = Path(__file__).resolve().parent
     config_path = base_dir / "prompt.config"
     config = _read_kv_config(str(config_path))
+
+    if not args.input:
+        args.input = str(
+            _resolve_config_path(base_dir, config.get("Source"), "images/pic-mr-Kamiki.jpg")
+        )
 
     if not args.prompt:
         args.prompt = _load_prompt_from_config(base_dir, config)
