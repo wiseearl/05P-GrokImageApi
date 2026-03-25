@@ -134,33 +134,31 @@ def _cosine_to_score(sim: float) -> float:
     return sim * 100.0
 
 
-def _calibrated_score(sim: float, mid: float, k: float) -> float:
-    """Map cosine similarity to a more 'confidence-like' 0~100 score.
+def _same_person_likelihood(sim: float) -> float:
+    """Heuristic likelihood (0~1) that two faces are the same person.
 
-    This is a heuristic calibration curve (sigmoid). It is NOT comparable across
-    different models/vendors unless calibrated on your own validation set.
+    This is NOT a calibrated probability. It is a monotonic mapping of the model's
+    cosine similarity to a 0~1 number for convenience.
     """
     if sim != sim:  # NaN
         return 0.0
     x = max(0.0, min(1.0, float(sim)))
-    # score = 100 / (1 + exp(-k * (x - mid)))
-    try:
-        z = -float(k) * (x - float(mid))
-        # clamp z to avoid overflow in exp
-        z = max(-60.0, min(60.0, z))
-        return 100.0 / (1.0 + math.exp(z))
-    except Exception:
-        return 0.0
+
+    # Sigmoid mapping chosen to be conservative for typical SFace ranges.
+    # Tune these if you have your own labeled validation set.
+    mid = 0.65
+    k = 15.0
+    z = -k * (x - mid)
+    z = max(-60.0, min(60.0, z))
+    return 1.0 / (1.0 + math.exp(z))
 
 
-def _float_from_config(config: dict[str, str], key: str, default: float) -> float:
-    raw = (config.get(key) or "").strip()
-    if not raw:
-        return default
-    try:
-        return float(raw)
-    except Exception:
-        return default
+def _likelihood_label(p: float) -> str:
+    if p >= 0.85:
+        return "high"
+    if p >= 0.60:
+        return "medium"
+    return "low"
 
 
 def main() -> int:
@@ -183,27 +181,6 @@ def main() -> int:
         "--json",
         action="store_true",
         help="Output JSON to stdout",
-    )
-    parser.add_argument(
-        "--score-mode",
-        choices=["raw", "calibrated", "both"],
-        default="both",
-        help=(
-            "Which score to print. raw = cosine*100; calibrated = sigmoid-mapped 0~100; "
-            "both = print both (default)."
-        ),
-    )
-    parser.add_argument(
-        "--calib-mid",
-        type=float,
-        default=None,
-        help="Calibration midpoint for calibrated score (default: from config or 0.60)",
-    )
-    parser.add_argument(
-        "--calib-k",
-        type=float,
-        default=None,
-        help="Calibration steepness for calibrated score (default: from config or 20)",
     )
 
     args = parser.parse_args()
@@ -244,39 +221,32 @@ def main() -> int:
 
     sim = float(recognizer.match(feat1, feat2, cv2.FaceRecognizerSF_FR_COSINE))
     raw_score = _cosine_to_score(sim)
-
-    calib_mid = args.calib_mid
-    if calib_mid is None:
-        calib_mid = _float_from_config(config, "CalibMid", 0.60)
-    calib_k = args.calib_k
-    if calib_k is None:
-        calib_k = _float_from_config(config, "CalibK", 20.0)
-    calibrated = _calibrated_score(sim, calib_mid, calib_k)
+    likelihood = _same_person_likelihood(sim)
+    likelihood_pct = likelihood * 100.0
 
     payload = {
         "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
         "source": str(source_path),
+        "source_name": source_path.name,
         "target": str(target_path),
+        "target_name": target_path.name,
         "cosine_similarity": sim,
-        "score_raw_0_100": raw_score,
-        "score_calibrated_0_100": calibrated,
-        "calibration": {
-            "mode": "sigmoid",
-            "mid": calib_mid,
-            "k": calib_k,
-        },
+        "score_0_100": raw_score,
+        "same_person_likelihood_0_1": likelihood,
+        "same_person_likelihood_pct": likelihood_pct,
+        "same_person_likelihood_label": _likelihood_label(likelihood),
     }
 
     if args.json:
         print(json.dumps(payload, ensure_ascii=False, indent=2))
     else:
-        if args.score_mode == "raw":
-            print(f"Score(raw): {raw_score:.2f}")
-        elif args.score_mode == "calibrated":
-            print(f"Score(calibrated): {calibrated:.2f}")
-        else:
-            print(f"Score(calibrated): {calibrated:.2f}")
-            print(f"Score(raw): {raw_score:.2f}")
+        print(f"Source: {source_path}")
+        print(f"Target: {target_path}")
+        print(f"Score: {raw_score:.2f}")
+        print(
+            "Same person likelihood (estimated): "
+            f"{likelihood_pct:.1f}% ({_likelihood_label(likelihood)})"
+        )
 
     return 0
 
