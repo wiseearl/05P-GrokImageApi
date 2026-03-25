@@ -112,9 +112,17 @@ def _find_facefusion_script(base_dir: Path, config: dict[str, str], cli_value: s
     configured_dir = _get_config_value(config, "FaceFusionDir", "facefusion_dir")
     candidate_dirs = []
     if env_dir:
-        candidate_dirs.append(Path(env_dir).expanduser().resolve())
+        env_path = Path(env_dir).expanduser().resolve()
+        if not env_path.exists():
+            raise RuntimeError(f"FaceFusion directory not found (FACEFUSION_DIR): {env_path}")
+        candidate_dirs.append(env_path)
     if configured_dir:
-        candidate_dirs.append(_resolve_path(base_dir, configured_dir))
+        configured_path = _resolve_path(base_dir, configured_dir)
+        if not configured_path.exists():
+            raise RuntimeError(
+                f"FaceFusion directory not found (FaceFusionDir in config): {configured_path}"
+            )
+        candidate_dirs.append(configured_path)
     candidate_dirs.extend(
         [
             (base_dir / "facefusion").resolve(),
