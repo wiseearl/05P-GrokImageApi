@@ -3,6 +3,7 @@ import base64
 import json
 import mimetypes
 import os
+from pathlib import Path
 import sys
 import time
 import urllib.error
@@ -10,6 +11,60 @@ import urllib.request
 
 
 XAI_API_BASE = "https://api.x.ai/v1"
+
+
+def _read_kv_config(path: str) -> dict[str, str]:
+    config: dict[str, str] = {}
+    if not os.path.exists(path):
+        return config
+
+    with open(path, "r", encoding="utf-8") as f:
+        for raw_line in f:
+            line = raw_line.strip()
+            if not line or line.startswith("#"):
+                continue
+            if "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            key = key.strip()
+            value = value.strip()
+            if (value.startswith('"') and value.endswith('"')) or (
+                value.startswith("'") and value.endswith("'")
+            ):
+                value = value[1:-1]
+            if key:
+                config[key] = value
+
+    return config
+
+
+def _render_prompt_template(template_text: str, variables: dict[str, str]) -> str:
+    rendered = template_text
+    for key, value in variables.items():
+        rendered = rendered.replace("{" + key + "}", value)
+    return rendered
+
+
+def _resolve_config_path(
+    base_dir: Path, configured_path: str | None, default_relative_path: str
+) -> Path:
+    raw = (configured_path or "").strip()
+    if not raw:
+        raw = default_relative_path
+
+    p = Path(raw)
+    if p.is_absolute():
+        return p
+    return (base_dir / p).resolve()
+
+
+def _load_prompt_from_config(base_dir: Path, config: dict[str, str]) -> str:
+    template_path = _resolve_config_path(base_dir, config.get("Prompt"), "prompt/c1.txt")
+
+    with open(template_path, "r", encoding="utf-8") as f:
+        template_text = f.read().strip()
+
+    return _render_prompt_template(template_text, config)
 
 
 def _read_api_key(api_key_file: str | None) -> str:
@@ -87,6 +142,57 @@ def _download_to_file(url: str, out_path: str) -> None:
         f.write(content)
 
 
+def _redact_api_response_for_log(result: dict) -> dict:
+    if not isinstance(result, dict):
+        return {"_raw": str(result)}
+
+    redacted: dict = {k: v for k, v in result.items() if k != "data"}
+    data = result.get("data")
+    if isinstance(data, list):
+        new_data = []
+        for item in data:
+            if isinstance(item, dict):
+                item2 = dict(item)
+                if "b64_json" in item2:
+                    b64_json = item2.get("b64_json") or ""
+                    item2["b64_json"] = f"<omitted {len(b64_json)} chars>"
+                new_data.append(item2)
+            else:
+                new_data.append(item)
+        redacted["data"] = new_data
+    else:
+        redacted["data"] = data
+
+    return redacted
+
+
+def _append_run_log(base_dir: Path, event: dict) -> None:
+    log_dir = base_dir / "log"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_path = log_dir / f"{time.strftime('%Y%m%d')}.json"
+
+    records: list[dict]
+    if log_path.exists():
+        try:
+            with open(log_path, "r", encoding="utf-8") as f:
+                existing = json.load(f)
+            if isinstance(existing, list):
+                records = existing
+            else:
+                records = [{"_legacy": existing}]
+        except Exception:
+            records = []
+    else:
+        records = []
+
+    records.append(event)
+
+    tmp_path = log_path.with_name(log_path.name + ".tmp")
+    with open(tmp_path, "w", encoding="utf-8") as f:
+        json.dump(records, f, ensure_ascii=False, indent=2)
+    os.replace(tmp_path, log_path)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="xAI Grok image-to-image edit")
     parser.add_argument(
@@ -96,19 +202,19 @@ def main() -> int:
     )
     parser.add_argument(
         "--prompt",
-        default=(
-            "keep face features and hair color. change cloth to an Elegant "
-            "Japanese-inspired long gown, flowing silk fabric, delicate sakura floral "
-            "patterns, soft pastel tones, wide sleeves, obi-style waist detail, "
-            "graceful posture, cinematic lighting, ultra-detailed fabric texture, 8k, "
-            "high fashion photography"
+        default=None,
+        help=(
+            "Edit prompt. Default: read prompt template from prompt.config (Prompt=...) "
+            "and substitute variables from prompt.config (e.g. {SwitchColor})."
         ),
-        help="Edit prompt",
     )
     parser.add_argument(
         "--out",
         default="",
-        help="Output path. Default: images/output-<timestamp>.<ext>",
+        help=(
+            "Output path. Default: <OutFolder>/output-<timestamp>.<ext> where OutFolder "
+            "is read from prompt.config (OutFolder=...)."
+        ),
     )
     parser.add_argument(
         "--model",
@@ -135,11 +241,28 @@ def main() -> int:
     )
     parser.add_argument(
         "--api-key-file",
-        default="image2image2026.txt",
-        help="Fallback API key file (default: image2image2026.txt). Prefer XAI_API_KEY env var.",
+        default=None,
+        help=(
+            "Fallback API key file. Default: read from prompt.config (Key=...). "
+            "Prefer XAI_API_KEY env var."
+        ),
     )
 
     args = parser.parse_args()
+
+    base_dir = Path(__file__).resolve().parent
+    config_path = base_dir / "prompt.config"
+    config = _read_kv_config(str(config_path))
+
+    if not args.prompt:
+        args.prompt = _load_prompt_from_config(base_dir, config)
+
+    if not args.api_key_file:
+        args.api_key_file = str(
+            _resolve_config_path(base_dir, config.get("Key"), "image2image2026.txt")
+        )
+
+    out_folder = _resolve_config_path(base_dir, config.get("OutFolder"), "images")
 
     if not os.path.exists(args.input):
         raise FileNotFoundError(f"Input image not found: {args.input}")
@@ -157,7 +280,23 @@ def main() -> int:
     }
 
     url = f"{XAI_API_BASE}/images/edits"
-    result = _http_post_json(url, api_key, payload)
+    try:
+        result = _http_post_json(url, api_key, payload)
+    except Exception as e:
+        _append_run_log(
+            base_dir,
+            {
+                "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
+                "ok": False,
+                "error": str(e),
+                "model": args.model,
+                "response_format": args.response_format,
+                "resolution": args.resolution,
+                "quality": args.quality,
+                "input": args.input,
+            },
+        )
+        raise
 
     data = result.get("data")
     if not data:
@@ -173,7 +312,7 @@ def main() -> int:
             ext = "jpg"
         elif mime_type == "image/webp":
             ext = "webp"
-        args.out = os.path.join("images", f"output-{ts}.{ext}")
+        args.out = str(out_folder / f"output-{ts}.{ext}")
 
     os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
 
@@ -193,6 +332,21 @@ def main() -> int:
                 f"Expected url in response, got: {json.dumps(item)[:2000]}"
             )
         _download_to_file(out_url, args.out)
+
+    _append_run_log(
+        base_dir,
+        {
+            "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
+            "ok": True,
+            "model": args.model,
+            "response_format": args.response_format,
+            "resolution": args.resolution,
+            "quality": args.quality,
+            "input": args.input,
+            "out": args.out,
+            "api_response": _redact_api_response_for_log(result),
+        },
+    )
 
     print(args.out)
     return 0
