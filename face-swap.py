@@ -314,17 +314,21 @@ def _swap_face(np, cv2, source_img, target_img, source_points, target_points):
         _warp_triangle(np, cv2, target_img, warped_face, src_tri, dst_tri)
 
     mask = np.zeros(source_img.shape[:2], dtype=np.uint8)
+    face_hull = cv2.convexHull(np.array(source_outline, dtype=np.int32))
+    face_polygon = [tuple(point[0]) for point in face_hull]
+    face_polygon = _scaled_polygon(np, face_polygon, 0.96)
     core_hull = cv2.convexHull(np.array(source_core, dtype=np.int32))
     core_polygon = [tuple(point[0]) for point in core_hull]
-    core_polygon = _scaled_polygon(np, core_polygon, 1.08)
+    core_polygon = _scaled_polygon(np, core_polygon, 1.04)
+    cv2.fillPoly(mask, [np.int32(face_polygon)], 255)
     cv2.fillPoly(mask, [np.int32(core_polygon)], 255)
-    clone_mask = _refine_mask(np, cv2, mask, core_polygon)
+    clone_mask = _refine_mask(np, cv2, mask, face_polygon)
 
     warped_face_uint8 = np.clip(warped_face, 0, 255).astype(source_img.dtype)
     corrected_face = _color_correct_face(np, cv2, warped_face_uint8, source_img, clone_mask)
     corrected_face = _apply_mask(np, corrected_face, clone_mask).astype(source_img.dtype)
 
-    x, y, w, h = cv2.boundingRect(np.float32([core_polygon]))
+    x, y, w, h = cv2.boundingRect(np.float32([face_polygon]))
     center = (x + w // 2, y + h // 2)
     output = cv2.seamlessClone(
         corrected_face,
