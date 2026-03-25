@@ -10,6 +10,24 @@ FACE_OVAL_INDICES = [
     172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109,
 ]
 
+CORE_FEATURE_INDICES = sorted(
+    {
+        6, 8, 9, 55, 65, 66, 70, 71, 105, 107,
+        122, 129, 142, 168, 193, 197, 198, 217,
+        285, 295, 296, 300, 301, 334, 336,
+        351, 358, 371, 399, 420, 437,
+        33, 7, 163, 144, 145, 153, 154, 155, 133,
+        246, 161, 160, 159, 158, 157, 173,
+        362, 382, 381, 380, 374, 373, 390, 249,
+        466, 388, 387, 386, 385, 384, 398,
+        78, 95, 88, 178, 87, 14, 317, 402, 318, 324,
+        308, 191, 80, 81, 82, 13, 312, 311, 310, 415,
+        61, 185, 40, 39, 37, 0, 267, 269, 270, 409,
+        17, 18, 200, 199, 175,
+        1, 2, 4, 5, 45, 51, 48, 115, 98, 327, 330, 278, 275,
+    }
+)
+
 
 def _read_kv_config(path: Path) -> dict[str, str]:
     config: dict[str, str] = {}
@@ -202,6 +220,13 @@ def _refine_mask(np, cv2, mask, polygon_points):
     return refined
 
 
+def _scaled_polygon(np, points, scale: float):
+    pts = np.array(points, dtype=np.float32)
+    center = pts.mean(axis=0)
+    scaled = center + (pts - center) * float(scale)
+    return [(int(round(x)), int(round(y))) for x, y in scaled]
+
+
 def _apply_mask(np, image, mask):
     mask_f = (mask.astype(np.float32) / 255.0)[..., None]
     return image.astype(np.float32) * mask_f
@@ -275,7 +300,7 @@ def _warp_triangle(np, cv2, src_img, dst_img, src_tri, dst_tri):
 
 def _swap_face(np, cv2, source_img, target_img, source_points, target_points):
     source_outline = [source_points[index] for index in FACE_OVAL_INDICES]
-    target_outline = [target_points[index] for index in FACE_OVAL_INDICES]
+    source_core = [source_points[index] for index in CORE_FEATURE_INDICES]
 
     rect = cv2.boundingRect(np.float32([source_outline]))
     triangle_indices = _triangle_indices_from_points(cv2, source_points, rect)
@@ -289,14 +314,17 @@ def _swap_face(np, cv2, source_img, target_img, source_points, target_points):
         _warp_triangle(np, cv2, target_img, warped_face, src_tri, dst_tri)
 
     mask = np.zeros(source_img.shape[:2], dtype=np.uint8)
-    cv2.fillPoly(mask, [np.int32(source_outline)], 255)
-    clone_mask = _refine_mask(np, cv2, mask, source_outline)
+    core_hull = cv2.convexHull(np.array(source_core, dtype=np.int32))
+    core_polygon = [tuple(point[0]) for point in core_hull]
+    core_polygon = _scaled_polygon(np, core_polygon, 1.08)
+    cv2.fillPoly(mask, [np.int32(core_polygon)], 255)
+    clone_mask = _refine_mask(np, cv2, mask, core_polygon)
 
     warped_face_uint8 = np.clip(warped_face, 0, 255).astype(source_img.dtype)
     corrected_face = _color_correct_face(np, cv2, warped_face_uint8, source_img, clone_mask)
     corrected_face = _apply_mask(np, corrected_face, clone_mask).astype(source_img.dtype)
 
-    x, y, w, h = cv2.boundingRect(np.float32([source_outline]))
+    x, y, w, h = cv2.boundingRect(np.float32([core_polygon]))
     center = (x + w // 2, y + h // 2)
     output = cv2.seamlessClone(
         corrected_face,
