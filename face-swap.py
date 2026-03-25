@@ -1,32 +1,10 @@
 import argparse
-from pathlib import Path
 import os
-import urllib.request
-
-
-FACE_OVAL_INDICES = [
-    10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288,
-    397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136,
-    172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109,
-]
-
-CORE_FEATURE_INDICES = sorted(
-    {
-        6, 8, 9, 55, 65, 66, 70, 71, 105, 107,
-        122, 129, 142, 168, 193, 197, 198, 217,
-        285, 295, 296, 300, 301, 334, 336,
-        351, 358, 371, 399, 420, 437,
-        33, 7, 163, 144, 145, 153, 154, 155, 133,
-        246, 161, 160, 159, 158, 157, 173,
-        362, 382, 381, 380, 374, 373, 390, 249,
-        466, 388, 387, 386, 385, 384, 398,
-        78, 95, 88, 178, 87, 14, 317, 402, 318, 324,
-        308, 191, 80, 81, 82, 13, 312, 311, 310, 415,
-        61, 185, 40, 39, 37, 0, 267, 269, 270, 409,
-        17, 18, 200, 199, 175,
-        1, 2, 4, 5, 45, 51, 48, 115, 98, 327, 330, 278, 275,
-    }
-)
+from pathlib import Path
+import shutil
+import shlex
+import subprocess
+import sys
 
 
 def _read_kv_config(path: Path) -> dict[str, str]:
@@ -63,6 +41,16 @@ def _resolve_path(base_dir: Path, configured_path: str | None, default_path: str
     return (base_dir / path).resolve()
 
 
+def _resolve_optional_path(base_dir: Path, configured_path: str | None) -> Path | None:
+    raw = (configured_path or "").strip()
+    if not raw:
+        return None
+    path = Path(raw)
+    if path.is_absolute():
+        return path
+    return (base_dir / path).resolve()
+
+
 def _unique_output_path(path: Path) -> Path:
     if not path.exists():
         return path
@@ -78,274 +66,206 @@ def _unique_output_path(path: Path) -> Path:
         index += 1
 
 
-def _download(url: str, out_path: Path) -> None:
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = out_path.with_suffix(out_path.suffix + ".tmp")
-    req = urllib.request.Request(
-        url,
-        headers={"User-Agent": "FaceSwap/1.0", "Accept": "*/*"},
-    )
-    with urllib.request.urlopen(req, timeout=300) as resp:
-        data = resp.read()
-    with open(tmp, "wb") as f:
-        f.write(data)
-    os.replace(tmp, out_path)
+def _normalize_output_path(output_path: Path, target_path: Path) -> Path:
+    if output_path.suffix.lower() == target_path.suffix.lower():
+        return output_path
+    return output_path.with_suffix(target_path.suffix)
 
 
-def _ensure_model(path: Path, url: str) -> Path:
-    if not path.exists():
-        print(f"Downloading model: {path.name}")
-        _download(url, path)
-    return path
-
-
-def _import_deps():
-    try:
-        import cv2  # type: ignore
-        import mediapipe as mp  # type: ignore
-        import numpy as np  # type: ignore
-        from mediapipe.tasks.python import vision  # type: ignore
-        from mediapipe.tasks.python.core.base_options import BaseOptions  # type: ignore
-    except Exception as exc:
-        raise RuntimeError(
-            "Missing dependencies. Install: pip install mediapipe opencv-contrib-python numpy"
-        ) from exc
-    return cv2, mp, np, vision, BaseOptions
-
-
-def _landmarks_to_points(landmarks, width: int, height: int):
-    points = []
-    for landmark in landmarks:
-        x = min(max(int(round(landmark.x * width)), 0), width - 1)
-        y = min(max(int(round(landmark.y * height)), 0), height - 1)
-        points.append((x, y))
-    return points
-
-
-def _bbox_area(points) -> int:
-    xs = [point[0] for point in points]
-    ys = [point[1] for point in points]
-    return (max(xs) - min(xs)) * (max(ys) - min(ys))
-
-
-def _create_face_landmarker(mp, vision, BaseOptions, model_path: Path, max_num_faces: int = 5):
-    options = vision.FaceLandmarkerOptions(
-        base_options=BaseOptions(model_asset_path=str(model_path)),
-        running_mode=vision.RunningMode.IMAGE,
-        num_faces=max_num_faces,
-        output_face_blendshapes=False,
-        output_facial_transformation_matrixes=False,
-    )
-    return vision.FaceLandmarker.create_from_options(options)
-
-
-def _detect_largest_face_points(mp, detector, image_path: Path):
-    image = mp.Image.create_from_file(str(image_path))
-    result = detector.detect(image)
-    if not result.face_landmarks:
-        raise RuntimeError(f"No face detected: {image_path}")
-
-    image_h, image_w = image.numpy_view().shape[:2]
-    candidates = [
-        _landmarks_to_points(face_landmarks, image_w, image_h)
-        for face_landmarks in result.face_landmarks
-    ]
-    return max(candidates, key=_bbox_area)
-
-
-def _closest_point_index(points, point) -> int:
-    best_index = -1
-    best_dist = None
-    px, py = point
-    for index, (x, y) in enumerate(points):
-        dist = (x - px) * (x - px) + (y - py) * (y - py)
-        if best_dist is None or dist < best_dist:
-            best_dist = dist
-            best_index = index
-    return best_index
-
-
-def _triangle_indices_from_points(cv2, hull_points, rect):
-    subdiv = cv2.Subdiv2D(rect)
-    for point in hull_points:
-        subdiv.insert((int(point[0]), int(point[1])))
-
-    triangle_list = subdiv.getTriangleList()
-    if triangle_list is None:
+def _parse_tokens(value: str | None) -> list[str]:
+    if not value:
         return []
+    return shlex.split(value, posix=os.name != "nt")
 
-    indices = []
-    seen = set()
-    x, y, w, h = rect
-    for triangle in triangle_list:
-        pts = [
-            (int(round(triangle[0])), int(round(triangle[1]))),
-            (int(round(triangle[2])), int(round(triangle[3]))),
-            (int(round(triangle[4])), int(round(triangle[5]))),
+
+def _get_config_value(config: dict[str, str], *keys: str) -> str | None:
+    for key in keys:
+        value = config.get(key)
+        if value is not None and value.strip():
+            return value.strip()
+    return None
+
+
+def _find_facefusion_script(base_dir: Path, config: dict[str, str], cli_value: str | None) -> Path:
+    if cli_value:
+        script_path = _resolve_path(base_dir, cli_value)
+        if not script_path.exists():
+            raise RuntimeError(f"FaceFusion script not found: {script_path}")
+        return script_path
+
+    env_script = os.environ.get("FACEFUSION_SCRIPT", "").strip()
+    if env_script:
+        script_path = Path(env_script).expanduser().resolve()
+        if not script_path.exists():
+            raise RuntimeError(f"FaceFusion script not found: {script_path}")
+        return script_path
+
+    configured_script = _get_config_value(config, "FaceFusionScript", "facefusion_script")
+    if configured_script:
+        script_path = _resolve_path(base_dir, configured_script)
+        if not script_path.exists():
+            raise RuntimeError(f"FaceFusion script not found: {script_path}")
+        return script_path
+
+    env_dir = os.environ.get("FACEFUSION_DIR", "").strip()
+    configured_dir = _get_config_value(config, "FaceFusionDir", "facefusion_dir")
+    candidate_dirs = []
+    if env_dir:
+        candidate_dirs.append(Path(env_dir).expanduser().resolve())
+    if configured_dir:
+        candidate_dirs.append(_resolve_path(base_dir, configured_dir))
+    candidate_dirs.extend(
+        [
+            (base_dir / "facefusion").resolve(),
+            (base_dir.parent / "facefusion").resolve(),
         ]
-        if not all(x <= px < x + w and y <= py < y + h for px, py in pts):
-            continue
+    )
 
-        tri_idx = tuple(_closest_point_index(hull_points, point) for point in pts)
-        if len(set(tri_idx)) != 3:
-            continue
-        if tri_idx in seen:
-            continue
-        seen.add(tri_idx)
-        indices.append(tri_idx)
-    return indices
+    for candidate_dir in candidate_dirs:
+        script_path = candidate_dir / "facefusion.py"
+        if script_path.exists():
+            return script_path
 
-
-def _polygon_bounds(points):
-    xs = [point[0] for point in points]
-    ys = [point[1] for point in points]
-    x0 = min(xs)
-    y0 = min(ys)
-    x1 = max(xs)
-    y1 = max(ys)
-    return x0, y0, x1, y1
+    raise RuntimeError(
+        "Cannot locate FaceFusion. Set FACEFUSION_DIR or FACEFUSION_SCRIPT, or add FaceFusionDir/FaceFusionScript to face-swap.config."
+    )
 
 
-def _refine_mask(np, cv2, mask, polygon_points):
-    x0, y0, x1, y1 = _polygon_bounds(polygon_points)
-    width = max(1, x1 - x0)
-    height = max(1, y1 - y0)
-
-    kernel_size = max(3, ((min(width, height) // 18) | 1))
-    blur_size = max(7, ((min(width, height) // 12) | 1))
-
-    kernel = np.ones((kernel_size, kernel_size), dtype=np.uint8)
-    refined = cv2.erode(mask, kernel, iterations=1)
-    refined = cv2.GaussianBlur(refined, (blur_size, blur_size), 0)
-    return refined
-
-
-def _scaled_polygon(np, points, scale: float):
-    pts = np.array(points, dtype=np.float32)
-    center = pts.mean(axis=0)
-    scaled = center + (pts - center) * float(scale)
-    return [(int(round(x)), int(round(y))) for x, y in scaled]
+def _find_facefusion_python(config: dict[str, str], cli_value: str | None) -> str:
+    for value in [
+        cli_value,
+        os.environ.get("FACEFUSION_PYTHON", "").strip(),
+        _get_config_value(config, "FaceFusionPython", "facefusion_python"),
+    ]:
+        if value:
+            python_path = Path(value).expanduser()
+            if python_path.exists():
+                return str(python_path.resolve())
+            return value
+    return sys.executable
 
 
-def _apply_mask(np, image, mask):
-    mask_f = (mask.astype(np.float32) / 255.0)[..., None]
-    return image.astype(np.float32) * mask_f
+def _find_ffmpeg_bin_dir(base_dir: Path, config: dict[str, str]) -> Path | None:
+    configured_dir = _get_config_value(config, "FFmpegBinDir", "ffmpeg_bin_dir")
+    if configured_dir:
+        path = _resolve_path(base_dir, configured_dir)
+        if (path / "ffmpeg.exe").exists():
+            return path
+        raise RuntimeError(f"FFmpeg binary directory not found: {path}")
+
+    detected = shutil.which("ffmpeg")
+    if detected:
+        return Path(detected).resolve().parent
+
+    candidate_dirs = [
+        Path.home() / "AppData/Local/Microsoft/WinGet/Links",
+        Path.home() / "AppData/Local/Microsoft/WinGet/Packages/Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe/ffmpeg-8.1-full_build/bin",
+        Path.home() / "AppData/Local/Microsoft/WinGet/Packages/Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe/ffmpeg-7.0.2-full_build/bin",
+        Path("C:/Program Files/ffmpeg/bin"),
+    ]
+    for candidate_dir in candidate_dirs:
+        if (candidate_dir / "ffmpeg.exe").exists():
+            return candidate_dir.resolve()
+
+    return None
 
 
-def _color_correct_face(np, cv2, warped_face, source_img, mask):
-    warped_f = warped_face.astype(np.float32)
-    source_f = source_img.astype(np.float32)
-    active = mask > 0
-    if not active.any():
-        return warped_face
-
-    corrected = warped_f.copy()
-    for channel in range(3):
-        src_vals = source_f[..., channel][active]
-        warp_vals = warped_f[..., channel][active]
-        src_mean, src_std = float(src_vals.mean()), float(src_vals.std())
-        warp_mean, warp_std = float(warp_vals.mean()), float(warp_vals.std())
-        if warp_std < 1e-6:
-            corrected[..., channel][active] = src_mean
-            continue
-        corrected[..., channel] = (
-            (corrected[..., channel] - warp_mean) * (src_std / warp_std)
-        ) + src_mean
-
-    corrected = np.clip(corrected, 0, 255).astype(warped_face.dtype)
-    return corrected
+def _build_subprocess_env(base_dir: Path, config: dict[str, str]) -> dict[str, str]:
+    env = dict(os.environ)
+    ffmpeg_bin_dir = _find_ffmpeg_bin_dir(base_dir, config)
+    if ffmpeg_bin_dir:
+        path_sep = os.pathsep
+        current_path = env.get("PATH", "")
+        env["PATH"] = str(ffmpeg_bin_dir) if not current_path else str(ffmpeg_bin_dir) + path_sep + current_path
+    return env
 
 
-def _warp_triangle(np, cv2, src_img, dst_img, src_tri, dst_tri):
-    src_rect = cv2.boundingRect(np.float32([src_tri]))
-    dst_rect = cv2.boundingRect(np.float32([dst_tri]))
+def _append_option(command: list[str], flag: str, value: str | None) -> None:
+    if value is None:
+        return
+    value = value.strip()
+    if not value:
+        return
+    command.extend([flag, value])
 
-    src_rect_points = []
-    dst_rect_points = []
-    for i in range(3):
-        src_rect_points.append(
-            (src_tri[i][0] - src_rect[0], src_tri[i][1] - src_rect[1])
-        )
-        dst_rect_points.append(
-            (dst_tri[i][0] - dst_rect[0], dst_tri[i][1] - dst_rect[1])
-        )
 
-    src_crop = src_img[
-        src_rect[1] : src_rect[1] + src_rect[3],
-        src_rect[0] : src_rect[0] + src_rect[2],
+def _append_multi_option(command: list[str], flag: str, tokens: list[str]) -> None:
+    if tokens:
+        command.append(flag)
+        command.extend(tokens)
+
+
+def _build_facefusion_command(
+    base_dir: Path,
+    script_path: Path,
+    python_executable: str,
+    config: dict[str, str],
+    source_path: Path,
+    target_path: Path,
+    output_path: Path,
+    jobs_path: Path,
+    temp_path: Path,
+) -> list[str]:
+    processors = _parse_tokens(_get_config_value(config, "Processors", "processors") or "face_swapper")
+    if not processors:
+        processors = ["face_swapper"]
+
+    command = [
+        python_executable,
+        str(script_path),
+        "headless-run",
+        "--jobs-path",
+        str(jobs_path),
+        "--temp-path",
+        str(temp_path),
+        "--source-paths",
+        str(source_path),
+        "--target-path",
+        str(target_path),
+        "--output-path",
+        str(output_path),
+        "--processors",
+        *processors,
     ]
 
-    warp_mat = cv2.getAffineTransform(
-        np.float32(src_rect_points), np.float32(dst_rect_points)
-    )
-    warped = cv2.warpAffine(
-        src_crop,
-        warp_mat,
-        (dst_rect[2], dst_rect[3]),
-        None,
-        flags=cv2.INTER_LINEAR,
-        borderMode=cv2.BORDER_REFLECT_101,
-    )
-
-    mask = np.zeros((dst_rect[3], dst_rect[2], 3), dtype=np.float32)
-    cv2.fillConvexPoly(mask, np.int32(dst_rect_points), (1.0, 1.0, 1.0), 16, 0)
-
-    target_roi = dst_img[
-        dst_rect[1] : dst_rect[1] + dst_rect[3],
-        dst_rect[0] : dst_rect[0] + dst_rect[2],
+    option_map = [
+        ("--face-swapper-model", _get_config_value(config, "FaceSwapperModel", "face_swapper_model")),
+        ("--face-swapper-pixel-boost", _get_config_value(config, "FaceSwapperPixelBoost", "face_swapper_pixel_boost")),
+        ("--face-swapper-weight", _get_config_value(config, "FaceSwapperWeight", "face_swapper_weight")),
+        ("--face-selector-mode", _get_config_value(config, "FaceSelectorMode", "face_selector_mode")),
+        ("--face-selector-order", _get_config_value(config, "FaceSelectorOrder", "face_selector_order")),
+        ("--reference-face-distance", _get_config_value(config, "ReferenceFaceDistance", "reference_face_distance")),
+        ("--reference-face-position", _get_config_value(config, "ReferenceFacePosition", "reference_face_position")),
+        ("--reference-frame-number", _get_config_value(config, "ReferenceFrameNumber", "reference_frame_number")),
+        ("--face-mask-blur", _get_config_value(config, "FaceMaskBlur", "face_mask_blur")),
+        ("--output-image-quality", _get_config_value(config, "OutputImageQuality", "output_image_quality")),
+        ("--output-image-scale", _get_config_value(config, "OutputImageScale", "output_image_scale")),
     ]
-    target_roi *= 1.0 - mask
-    target_roi += warped * mask
+    for flag, value in option_map:
+        _append_option(command, flag, value)
 
-
-def _swap_face(np, cv2, source_img, target_img, source_points, target_points):
-    source_outline = [source_points[index] for index in FACE_OVAL_INDICES]
-    source_core = [source_points[index] for index in CORE_FEATURE_INDICES]
-
-    rect = cv2.boundingRect(np.float32([source_outline]))
-    triangle_indices = _triangle_indices_from_points(cv2, source_points, rect)
-    if not triangle_indices:
-        raise RuntimeError("Failed to build face triangulation")
-
-    warped_face = np.zeros_like(source_img, dtype=np.float32)
-    for tri in triangle_indices:
-        src_tri = [target_points[tri[0]], target_points[tri[1]], target_points[tri[2]]]
-        dst_tri = [source_points[tri[0]], source_points[tri[1]], source_points[tri[2]]]
-        _warp_triangle(np, cv2, target_img, warped_face, src_tri, dst_tri)
-
-    mask = np.zeros(source_img.shape[:2], dtype=np.uint8)
-    face_hull = cv2.convexHull(np.array(source_outline, dtype=np.int32))
-    face_polygon = [tuple(point[0]) for point in face_hull]
-    face_polygon = _scaled_polygon(np, face_polygon, 0.96)
-    core_hull = cv2.convexHull(np.array(source_core, dtype=np.int32))
-    core_polygon = [tuple(point[0]) for point in core_hull]
-    core_polygon = _scaled_polygon(np, core_polygon, 1.04)
-    cv2.fillPoly(mask, [np.int32(face_polygon)], 255)
-    cv2.fillPoly(mask, [np.int32(core_polygon)], 255)
-    clone_mask = _refine_mask(np, cv2, mask, face_polygon)
-
-    warped_face_uint8 = np.clip(warped_face, 0, 255).astype(source_img.dtype)
-    corrected_face = _color_correct_face(np, cv2, warped_face_uint8, source_img, clone_mask)
-    corrected_face = _apply_mask(np, corrected_face, clone_mask).astype(source_img.dtype)
-
-    x, y, w, h = cv2.boundingRect(np.float32([face_polygon]))
-    center = (x + w // 2, y + h // 2)
-    output = cv2.seamlessClone(
-        corrected_face,
-        source_img,
-        clone_mask,
-        center,
-        cv2.MIXED_CLONE,
+    _append_multi_option(
+        command,
+        "--face-mask-types",
+        _parse_tokens(_get_config_value(config, "FaceMaskTypes", "face_mask_types")),
     )
-    return output
+    _append_multi_option(
+        command,
+        "--face-mask-padding",
+        _parse_tokens(_get_config_value(config, "FaceMaskPadding", "face_mask_padding")),
+    )
+    command.extend(_parse_tokens(_get_config_value(config, "ExtraArgs", "extra_args")))
+    return command
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Swap target face onto source image")
+    parser = argparse.ArgumentParser(description="Swap face using FaceFusion headless CLI")
     parser.add_argument("--config", default="face-swap.config", help="Config file path")
     parser.add_argument("--source", default="", help="Base image path")
     parser.add_argument("--target", default="", help="Reference face image path")
     parser.add_argument("--output", default="", help="Output image path")
+    parser.add_argument("--facefusion-script", default="", help="Path to FaceFusion facefusion.py")
+    parser.add_argument("--facefusion-python", default="", help="Python executable used to run FaceFusion")
 
     args = parser.parse_args()
 
@@ -355,38 +275,60 @@ def main() -> int:
     source_path = _resolve_path(base_dir, args.source or config.get("Source"))
     target_path = _resolve_path(base_dir, args.target or config.get("Target"))
 
-    default_output = source_path.with_name(source_path.stem + "-swap" + source_path.suffix)
+    default_output = target_path.with_name(target_path.stem + "-swap" + target_path.suffix)
     output_path = _resolve_path(base_dir, args.output or config.get("Output"), str(default_output))
+    output_path = _normalize_output_path(output_path, target_path)
     output_path = _unique_output_path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    cv2, mp, np, vision, BaseOptions = _import_deps()
+    if not source_path.exists():
+        raise RuntimeError(f"Source image not found: {source_path}")
+    if not target_path.exists():
+        raise RuntimeError(f"Target image not found: {target_path}")
 
-    models_dir = (base_dir / "models").resolve()
-    landmarker_path = _ensure_model(
-        models_dir / "face_landmarker.task",
-        "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+    jobs_path = _resolve_optional_path(base_dir, _get_config_value(config, "JobsPath", "jobs_path"))
+    if jobs_path is None:
+        jobs_path = (base_dir / ".facefusion" / "jobs").resolve()
+    temp_path = _resolve_optional_path(base_dir, _get_config_value(config, "TempPath", "temp_path"))
+    if temp_path is None:
+        temp_path = (base_dir / ".facefusion" / "temp").resolve()
+    jobs_path.mkdir(parents=True, exist_ok=True)
+    temp_path.mkdir(parents=True, exist_ok=True)
+
+    script_path = _find_facefusion_script(base_dir, config, args.facefusion_script)
+    python_executable = _find_facefusion_python(config, args.facefusion_python)
+    command = _build_facefusion_command(
+        base_dir,
+        script_path,
+        python_executable,
+        config,
+        source_path,
+        target_path,
+        output_path,
+        jobs_path,
+        temp_path,
     )
-    detector = _create_face_landmarker(mp, vision, BaseOptions, landmarker_path)
 
-    source_img = cv2.imread(str(source_path))
-    target_img = cv2.imread(str(target_path))
-    if source_img is None:
-        raise RuntimeError(f"Failed to read source image: {source_path}")
-    if target_img is None:
-        raise RuntimeError(f"Failed to read target image: {target_path}")
+    completed = subprocess.run(
+        command,
+        cwd=str(script_path.parent),
+        capture_output=True,
+        env=_build_subprocess_env(base_dir, config),
+        text=True,
+    )
+    if completed.returncode != 0:
+        details = (completed.stderr or completed.stdout or "").strip()
+        if not details:
+            details = f"FaceFusion exited with code {completed.returncode}"
+        raise RuntimeError(details)
 
-    source_points = _detect_largest_face_points(mp, detector, source_path)
-    target_points = _detect_largest_face_points(mp, detector, target_path)
-
-    output = _swap_face(np, cv2, source_img, target_img, source_points, target_points)
-    ok = cv2.imwrite(str(output_path), output)
-    if not ok:
-        raise RuntimeError(f"Failed to write output image: {output_path}")
+    if not output_path.exists():
+        raise RuntimeError(f"FaceFusion finished without creating output: {output_path}")
 
     print(f"Source: {source_path}")
     print(f"Target: {target_path}")
     print(f"Output: {output_path}")
+    print(f"FaceFusion: {script_path}")
     return 0
 
 
