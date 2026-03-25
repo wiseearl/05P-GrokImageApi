@@ -1,0 +1,135 @@
+import argparse
+import os
+from pathlib import Path
+import subprocess
+import sys
+import tempfile
+import time
+
+
+def _read_kv_config(path: Path) -> dict[str, str]:
+    config: dict[str, str] = {}
+    if not path.exists():
+        return config
+
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip()
+        if (value.startswith('"') and value.endswith('"')) or (
+            value.startswith("'") and value.endswith("'")
+        ):
+            value = value[1:-1]
+        if key:
+            config[key] = value
+
+    return config
+
+
+def _resolve_path(base_dir: Path, configured_path: str | None) -> Path:
+    raw = (configured_path or "").strip()
+    if not raw:
+        raise RuntimeError("Missing required path")
+    p = Path(raw)
+    if p.is_absolute():
+        return p
+    return (base_dir / p).resolve()
+
+
+def _write_kv_config(path: Path, config: dict[str, str]) -> None:
+    lines = [f"{k}={v}" for k, v in sorted(config.items())]
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Batch-run image-edit.py with prompt templates s3.txt ~ s20.txt; sleep 5s after each success"
+    )
+    parser.add_argument(
+        "--config",
+        default="config-image-edit.config",
+        help="Base config file path (default: config-image-edit.config)",
+    )
+    parser.add_argument(
+        "--sleep",
+        type=float,
+        default=5.0,
+        help="Sleep seconds after each successful output (default: 5)",
+    )
+
+    args = parser.parse_args()
+
+    base_dir = Path(__file__).resolve().parent
+    script_path = (base_dir / "image-edit.py").resolve()
+    if not script_path.exists():
+        raise RuntimeError(f"Missing script: {script_path}")
+
+    base_config_path = _resolve_path(base_dir, args.config)
+    base_config = _read_kv_config(base_config_path)
+    if not base_config:
+        raise RuntimeError(f"Config is empty or missing: {base_config_path}")
+
+    failures: list[tuple[int, str]] = []
+
+    for i in range(3, 21):
+        prompt_file = (base_dir / "prompt" / f"s{i}.txt").resolve()
+        if not prompt_file.exists():
+            message = f"Missing prompt template: {prompt_file}"
+            print(f"[{i}] ERROR {message}")
+            failures.append((i, message))
+            continue
+
+        rel_prompt = os.path.relpath(prompt_file, base_dir).replace("\\", "/")
+        run_config = dict(base_config)
+        run_config["Prompt"] = rel_prompt
+
+        tmp_path: Path | None = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                mode="w",
+                encoding="utf-8",
+                suffix=f".s{i}.config",
+                delete=False,
+                dir=str(base_dir),
+            ) as tf:
+                tmp_path = Path(tf.name)
+            _write_kv_config(tmp_path, run_config)
+
+            print(f"[{i}] Running prompt: {prompt_file.name}")
+            command = [
+                sys.executable,
+                str(script_path),
+                "--config",
+                str(tmp_path),
+            ]
+            completed = subprocess.run(command, cwd=str(base_dir))
+            if completed.returncode != 0:
+                message = f"Exit code {completed.returncode}"
+                print(f"[{i}] ERROR {message}")
+                failures.append((i, message))
+                continue
+
+            if args.sleep > 0:
+                time.sleep(args.sleep)
+        finally:
+            if tmp_path and tmp_path.exists():
+                try:
+                    tmp_path.unlink()
+                except OSError:
+                    pass
+
+    success_count = 18 - len(failures)
+    print(f"Completed: {success_count} succeeded, {len(failures)} failed")
+    return 1 if failures else 0
+
+
+if __name__ == "__main__":
+    try:
+        raise SystemExit(main())
+    except KeyboardInterrupt:
+        raise SystemExit(130)

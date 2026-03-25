@@ -221,6 +221,11 @@ def _append_run_log(base_dir: Path, event: dict) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description="xAI Grok image-to-image edit")
     parser.add_argument(
+        "--config",
+        default="config-image-edit.config",
+        help="Config file path (default: config-image-edit.config)",
+    )
+    parser.add_argument(
         "--input",
         default=None,
         help=(
@@ -278,7 +283,7 @@ def main() -> int:
     args = parser.parse_args()
 
     base_dir = Path(__file__).resolve().parent
-    config_path = base_dir / "config-image-edit.config"
+    config_path = _resolve_config_path(base_dir, args.config, "config-image-edit.config")
     config = _read_kv_config(str(config_path))
 
     if not args.input:
