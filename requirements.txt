@@ -1,0 +1,4 @@
+# Requires Python >= 3.10 (scripts use PEP 604: `str | None`)
+numpy==2.0.2
+opencv-contrib-python==4.13.0.92
+packaging==26.0

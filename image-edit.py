@@ -224,15 +224,15 @@ def main() -> int:
         "--input",
         default=None,
         help=(
-            "Input image path. Default: read from prompt.config (Source=...)."
+            "Input image path. Default: read from config-image-edit.config (Source=...)."
         ),
     )
     parser.add_argument(
         "--prompt",
         default=None,
         help=(
-            "Edit prompt. Default: read prompt template from prompt.config (Prompt=...) "
-            "and substitute variables from prompt.config (e.g. {SwitchColor})."
+            "Edit prompt. Default: read prompt template from config-image-edit.config (Prompt=...) "
+            "and substitute variables from config-image-edit.config (e.g. {SwitchColor})."
         ),
     )
     parser.add_argument(
@@ -270,7 +270,7 @@ def main() -> int:
         "--api-key-file",
         default=None,
         help=(
-            "Fallback API key file. Default: read from prompt.config (Key=...). "
+            "Fallback API key file. Default: read from config-image-edit.config (Key=...). "
             "Prefer XAI_API_KEY env var."
         ),
     )
@@ -278,7 +278,7 @@ def main() -> int:
     args = parser.parse_args()
 
     base_dir = Path(__file__).resolve().parent
-    config_path = base_dir / "prompt.config"
+    config_path = base_dir / "config-image-edit.config"
     config = _read_kv_config(str(config_path))
 
     if not args.input:

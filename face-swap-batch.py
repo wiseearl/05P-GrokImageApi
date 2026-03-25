@@ -52,7 +52,7 @@ def _split_target_pattern(target_path: Path) -> tuple[str, int, str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Batch-run face-swap.py for sequential image files")
-    parser.add_argument("--config", default="face-swap.config", help="Config file path")
+    parser.add_argument("--config", default="config-swap.config", help="Config file path")
     parser.add_argument("--start", type=int, default=None, help="Starting index, default comes from config target")
     parser.add_argument("--end", type=int, default=None, help="Ending index inclusive, default is start + 9")
     parser.add_argument("--stop-on-error", action="store_true", help="Stop immediately if one image fails")

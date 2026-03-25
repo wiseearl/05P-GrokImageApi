@@ -180,8 +180,8 @@ def main() -> int:
     )
     parser.add_argument(
         "--config",
-        default="compare.config",
-        help="Config file path (default: compare.config)",
+        default="config-compare.config",
+        help="Config file path (default: config-compare.config)",
     )
     parser.add_argument("--source", default="", help="Override Source image path")
     parser.add_argument("--target", default="", help="Override Target image path")

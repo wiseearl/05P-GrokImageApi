@@ -128,7 +128,7 @@ def _find_facefusion_script(base_dir: Path, config: dict[str, str], cli_value: s
             return script_path
 
     raise RuntimeError(
-        "Cannot locate FaceFusion. Set FACEFUSION_DIR or FACEFUSION_SCRIPT, or add FaceFusionDir/FaceFusionScript to face-swap.config."
+        "Cannot locate FaceFusion. Set FACEFUSION_DIR or FACEFUSION_SCRIPT, or add FaceFusionDir/FaceFusionScript to config-swap.config."
     )
 
 
@@ -324,7 +324,7 @@ def _analyse_image_with_facefusion(python_executable: str, facefusion_cwd: Path,
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Swap face using FaceFusion headless CLI")
-    parser.add_argument("--config", default="face-swap.config", help="Config file path")
+    parser.add_argument("--config", default="config-swap.config", help="Config file path")
     parser.add_argument("--source", default="", help="Base image path")
     parser.add_argument("--target", default="", help="Reference face image path")
     parser.add_argument("--output", default="", help="Output image path")
