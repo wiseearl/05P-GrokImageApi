@@ -54,7 +54,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Batch-run face-swap.py for sequential image files")
     parser.add_argument("--config", default="face-swap.config", help="Config file path")
     parser.add_argument("--start", type=int, default=None, help="Starting index, default comes from config target")
-    parser.add_argument("--end", type=int, default=10, help="Ending index inclusive (default: 10)")
+    parser.add_argument("--end", type=int, default=None, help="Ending index inclusive, default is start + 9")
     parser.add_argument("--stop-on-error", action="store_true", help="Stop immediately if one image fails")
     args = parser.parse_args()
 
@@ -66,7 +66,7 @@ def main() -> int:
     target_seed_path = _resolve_path(base_dir, config.get("Target"))
     prefix, default_start, suffix = _split_target_pattern(target_seed_path)
     start = args.start if args.start is not None else default_start
-    end = args.end
+    end = args.end if args.end is not None else start + 9
     if end < start:
         raise RuntimeError(f"Invalid range: start={start}, end={end}")
 
