@@ -39,6 +39,20 @@ def _resolve_path(base_dir: Path, configured_path: str | None) -> Path:
     return (base_dir / path).resolve()
 
 
+def _resolve_existing_path(path: Path) -> Path:
+    if path.exists():
+        return path.resolve()
+
+    parent = path.parent
+    stem = path.stem
+    if parent.exists():
+        matches = sorted(candidate for candidate in parent.glob(f"{stem}.*") if candidate.is_file())
+        if len(matches) == 1:
+            return matches[0].resolve()
+
+    return path.resolve()
+
+
 def _split_numbered_filename(path: Path) -> tuple[str, int, str, str]:
     """Split a filename into (prefix, index, stem_suffix, extension).
 
@@ -90,29 +104,32 @@ def main() -> int:
     if not script_path.exists():
         raise RuntimeError(f"Missing script: {script_path}")
 
-    # New batch config format:
+    # Preferred batch config format:
     # Source=...
-    # TargetStart=.../bed1.jpg
+    # Target=.../c1.png
+    # Output=.../c1-swap.png
     # FileNumbers=20
-    # OutputStart=.../bed1-swap.jpg
-    if "TargetStart" in batch_config or "FileNumbers" in batch_config or "OutputStart" in batch_config:
-        source_path = _resolve_path(base_dir, batch_config.get("Source"))
-        target_seed_path = _resolve_path(base_dir, args.target or batch_config.get("TargetStart"))
-        output_seed_raw = batch_config.get("OutputStart") or batch_config.get("Output")
+    # Legacy aliases still supported: TargetStart / OutputStart.
+    target_seed_raw = args.target or batch_config.get("Target") or batch_config.get("TargetStart")
+    output_seed_raw = batch_config.get("Output") or batch_config.get("OutputStart")
+    file_numbers = _get_int(batch_config, "FileNumbers")
+    if target_seed_raw or output_seed_raw or file_numbers is not None:
+        source_path = _resolve_existing_path(_resolve_path(base_dir, batch_config.get("Source")))
+        target_seed_path = _resolve_existing_path(_resolve_path(base_dir, target_seed_raw))
         output_seed_path = _resolve_path(base_dir, output_seed_raw) if output_seed_raw else None
 
         target_prefix, default_start, target_stem_suffix, target_ext = _split_numbered_filename(
             target_seed_path
         )
 
-        file_numbers = _get_int(batch_config, "FileNumbers")
         if file_numbers is None:
-            # Backward compatible fallback (if someone used TargetEnd before).
             target_end_raw = batch_config.get("TargetEnd")
             if target_end_raw:
                 target_end_path = _resolve_path(base_dir, target_end_raw)
                 _p2, end_index, _stem2, _ext2 = _split_numbered_filename(target_end_path)
                 file_numbers = end_index - default_start + 1
+            elif args.end is not None:
+                file_numbers = args.end - (args.start if args.start is not None else default_start) + 1
             else:
                 raise RuntimeError("Missing FileNumbers in batch config")
         if file_numbers <= 0:
@@ -184,8 +201,8 @@ def main() -> int:
         return 1 if failures else 0
 
     # Old config format fallback (Source/Target) for compatibility.
-    source_path = _resolve_path(base_dir, batch_config.get("Source"))
-    target_seed_path = _resolve_path(base_dir, args.target or batch_config.get("Target"))
+    source_path = _resolve_existing_path(_resolve_path(base_dir, batch_config.get("Source")))
+    target_seed_path = _resolve_existing_path(_resolve_path(base_dir, args.target or batch_config.get("Target")))
     prefix, default_start, stem_suffix, ext = _split_numbered_filename(target_seed_path)
     start = args.start if args.start is not None else default_start
     end = args.end if args.end is not None else start + 9

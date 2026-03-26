@@ -52,8 +52,8 @@ def main() -> int:
     )
     parser.add_argument(
         "--config",
-        default="config-image-edit-batch.config",
-        help="Base config file path (default: config-image-edit-batch.config)",
+        default="config-image-edit.config",
+        help="Base config file path (default: config-image-edit.config)",
     )
     parser.add_argument(
         "--file-numbers",
@@ -91,7 +91,7 @@ def main() -> int:
     file_numbers = args.file_numbers if args.file_numbers > 0 else configured_file_numbers
     if file_numbers <= 0:
         raise RuntimeError(
-            "Missing FileNumbers. Set FileNumbers=<N> in config-image-edit-batch.config, or pass --file-numbers N."
+            "Missing FileNumbers. Set FileNumbers=<N> in config-image-edit.config, or pass --file-numbers N."
         )
 
     failures: list[tuple[int, str]] = []
