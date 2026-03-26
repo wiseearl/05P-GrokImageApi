@@ -1,6 +1,7 @@
 import argparse
 import os
 from pathlib import Path
+import re
 import subprocess
 import sys
 import tempfile
@@ -41,6 +42,18 @@ def _resolve_path(base_dir: Path, configured_path: str | None) -> Path:
     return (base_dir / p).resolve()
 
 
+def _split_numbered_prompt_path(path: Path) -> tuple[str, int, str]:
+    match = re.fullmatch(r"(.*?)(\d+)$", path.stem)
+    if not match:
+        raise RuntimeError(
+            "Prompt filename must end with a number, for example c1.txt or s1.txt"
+        )
+
+    prefix = match.group(1)
+    start_index = int(match.group(2))
+    return prefix, start_index, path.suffix
+
+
 def _write_kv_config(path: Path, config: dict[str, str]) -> None:
     lines = [f"{k}={v}" for k, v in sorted(config.items())]
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -48,7 +61,7 @@ def _write_kv_config(path: Path, config: dict[str, str]) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Batch-run image-edit.py with prompt templates c1.txt ~ cN.txt; sleep after each success"
+        description="Batch-run image-edit.py using the numbered Prompt file from config-image-edit.config"
     )
     parser.add_argument(
         "--config",
@@ -60,7 +73,7 @@ def main() -> int:
         type=int,
         default=0,
         help=(
-            "How many prompt files to run (c1..cN). Default: read from config (FileNumbers=...)."
+            "How many prompt files to run from the configured Prompt seed. Default: read from config (FileNumbers=...)."
         ),
     )
     parser.add_argument(
@@ -94,14 +107,18 @@ def main() -> int:
             "Missing FileNumbers. Set FileNumbers=<N> in config-image-edit.config, or pass --file-numbers N."
         )
 
+    prompt_seed_path = _resolve_path(base_dir, base_config.get("Prompt"))
+    prompt_prefix, start_index, prompt_suffix = _split_numbered_prompt_path(prompt_seed_path)
+
     failures: list[tuple[int, str]] = []
 
-    for i in range(1, file_numbers + 1):
-        prompt_file = (base_dir / "prompt" / f"c{i}.txt").resolve()
+    for offset in range(file_numbers):
+        prompt_index = start_index + offset
+        prompt_file = prompt_seed_path.with_name(f"{prompt_prefix}{prompt_index}{prompt_suffix}")
         if not prompt_file.exists():
             message = f"Missing prompt template: {prompt_file}"
-            print(f"[{i}] ERROR {message}")
-            failures.append((i, message))
+            print(f"[{prompt_index}] ERROR {message}")
+            failures.append((prompt_index, message))
             continue
 
         rel_prompt = os.path.relpath(prompt_file, base_dir).replace("\\", "/")
@@ -114,14 +131,14 @@ def main() -> int:
             with tempfile.NamedTemporaryFile(
                 mode="w",
                 encoding="utf-8",
-                suffix=f".c{i}.config",
+                suffix=f".{prompt_prefix}{prompt_index}.config",
                 delete=False,
                 dir=str(base_dir),
             ) as tf:
                 tmp_path = Path(tf.name)
             _write_kv_config(tmp_path, run_config)
 
-            print(f"[{i}] Running prompt: {prompt_file.name}")
+            print(f"[{prompt_index}] Running prompt: {prompt_file.name}")
             command = [
                 sys.executable,
                 str(script_path),
@@ -131,8 +148,8 @@ def main() -> int:
             completed = subprocess.run(command, cwd=str(base_dir))
             if completed.returncode != 0:
                 message = f"Exit code {completed.returncode}"
-                print(f"[{i}] ERROR {message}")
-                failures.append((i, message))
+                print(f"[{prompt_index}] ERROR {message}")
+                failures.append((prompt_index, message))
                 continue
 
             if args.sleep > 0:
