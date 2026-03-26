@@ -58,6 +58,21 @@ def _resolve_config_path(
     return (base_dir / p).resolve()
 
 
+def _resolve_existing_input_path(configured_path: str) -> Path:
+    candidate = Path(configured_path).resolve()
+    if candidate.exists():
+        return candidate
+
+    parent = candidate.parent
+    stem = candidate.stem
+    if parent.exists():
+        matches = sorted(path for path in parent.glob(f"{stem}.*") if path.is_file())
+        if len(matches) == 1:
+            return matches[0].resolve()
+
+    return candidate
+
+
 def _load_prompt_from_config(base_dir: Path, config: dict[str, str]) -> tuple[str, Path]:
     template_path = _resolve_config_path(
         base_dir, config.get("Prompt"), "prompt/c1.txt"
@@ -229,15 +244,15 @@ def main() -> int:
         "--input",
         default=None,
         help=(
-            "Input image path. Default: read from config-image-edit.config (Source=...)."
+            "Input image path. Default: read from the selected config file (Source=...)."
         ),
     )
     parser.add_argument(
         "--prompt",
         default=None,
         help=(
-            "Edit prompt. Default: read prompt template from config-image-edit.config (Prompt=...) "
-            "and substitute variables from config-image-edit.config (e.g. {SwitchColor})."
+            "Edit prompt. Default: read prompt template from the selected config file (Prompt=...) "
+            "and substitute variables from that config (e.g. {SwitchColor})."
         ),
     )
     parser.add_argument(
@@ -275,7 +290,7 @@ def main() -> int:
         "--api-key-file",
         default=None,
         help=(
-            "Fallback API key file. Default: read from config-image-edit.config (Key=...). "
+            "Fallback API key file. Default: read from the selected config file (Key=...). "
             "Prefer XAI_API_KEY env var."
         ),
     )
@@ -290,6 +305,8 @@ def main() -> int:
         args.input = str(
             _resolve_config_path(base_dir, config.get("Source"), "images/pic-mr-Kamiki.jpg")
         )
+
+    args.input = str(_resolve_existing_input_path(args.input))
 
     if not args.prompt:
         args.prompt, prompt_template_path = _load_prompt_from_config(base_dir, config)

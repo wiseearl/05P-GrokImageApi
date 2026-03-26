@@ -48,12 +48,20 @@ def _write_kv_config(path: Path, config: dict[str, str]) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Batch-run image-edit.py with prompt templates s3.txt ~ s20.txt; sleep 5s after each success"
+        description="Batch-run image-edit.py with prompt templates c1.txt ~ cN.txt; sleep after each success"
     )
     parser.add_argument(
         "--config",
-        default="config-image-edit.config",
-        help="Base config file path (default: config-image-edit.config)",
+        default="config-image-edit-batch.config",
+        help="Base config file path (default: config-image-edit-batch.config)",
+    )
+    parser.add_argument(
+        "--file-numbers",
+        type=int,
+        default=0,
+        help=(
+            "How many prompt files to run (c1..cN). Default: read from config (FileNumbers=...)."
+        ),
     )
     parser.add_argument(
         "--sleep",
@@ -74,10 +82,22 @@ def main() -> int:
     if not base_config:
         raise RuntimeError(f"Config is empty or missing: {base_config_path}")
 
+    configured_file_numbers = 0
+    try:
+        configured_file_numbers = int((base_config.get("FileNumbers") or "").strip() or "0")
+    except ValueError:
+        configured_file_numbers = 0
+
+    file_numbers = args.file_numbers if args.file_numbers > 0 else configured_file_numbers
+    if file_numbers <= 0:
+        raise RuntimeError(
+            "Missing FileNumbers. Set FileNumbers=<N> in config-image-edit-batch.config, or pass --file-numbers N."
+        )
+
     failures: list[tuple[int, str]] = []
 
-    for i in range(3, 21):
-        prompt_file = (base_dir / "prompt" / f"s{i}.txt").resolve()
+    for i in range(1, file_numbers + 1):
+        prompt_file = (base_dir / "prompt" / f"c{i}.txt").resolve()
         if not prompt_file.exists():
             message = f"Missing prompt template: {prompt_file}"
             print(f"[{i}] ERROR {message}")
@@ -87,13 +107,14 @@ def main() -> int:
         rel_prompt = os.path.relpath(prompt_file, base_dir).replace("\\", "/")
         run_config = dict(base_config)
         run_config["Prompt"] = rel_prompt
+        run_config.pop("FileNumbers", None)
 
         tmp_path: Path | None = None
         try:
             with tempfile.NamedTemporaryFile(
                 mode="w",
                 encoding="utf-8",
-                suffix=f".s{i}.config",
+                suffix=f".c{i}.config",
                 delete=False,
                 dir=str(base_dir),
             ) as tf:
@@ -123,7 +144,7 @@ def main() -> int:
                 except OSError:
                     pass
 
-    success_count = 18 - len(failures)
+    success_count = file_numbers - len(failures)
     print(f"Completed: {success_count} succeeded, {len(failures)} failed")
     return 1 if failures else 0
 
