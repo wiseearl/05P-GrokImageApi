@@ -87,8 +87,7 @@ def _get_int(config: dict[str, str], key: str) -> int | None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Batch-run face-swap.py for sequential image files")
-    parser.add_argument("--config", default="config-swap-batch.config", help="Batch config file path")
-    parser.add_argument("--swap-config", default="config-swap.config", help="face-swap.py config file path")
+    parser.add_argument("--config", default="config-swap.config", help="Config file path")
     parser.add_argument("--target", default="", help="Override seed Target image path (must end with a number, e.g. s2.jpg)")
     parser.add_argument("--start", type=int, default=None, help="Starting index, default comes from config target")
     parser.add_argument("--end", type=int, default=None, help="Ending index inclusive, default is start + 9")
@@ -96,25 +95,23 @@ def main() -> int:
     args = parser.parse_args()
 
     base_dir = Path(__file__).resolve().parent
-    batch_config_path = _resolve_path(base_dir, args.config)
-    batch_config = _read_kv_config(batch_config_path)
-    swap_config_path = _resolve_path(base_dir, args.swap_config)
+    config_path = _resolve_path(base_dir, args.config)
+    config = _read_kv_config(config_path)
 
     script_path = (base_dir / "face-swap.py").resolve()
     if not script_path.exists():
         raise RuntimeError(f"Missing script: {script_path}")
 
-    # Preferred batch config format:
+    # Batch values are read from the same config used by face-swap.py.
     # Source=...
     # Target=.../c1.png
     # Output=.../c1-swap.png
     # FileNumbers=20
-    # Legacy aliases still supported: TargetStart / OutputStart.
-    target_seed_raw = args.target or batch_config.get("Target") or batch_config.get("TargetStart")
-    output_seed_raw = batch_config.get("Output") or batch_config.get("OutputStart")
-    file_numbers = _get_int(batch_config, "FileNumbers")
+    target_seed_raw = args.target or config.get("Target") or config.get("TargetStart")
+    output_seed_raw = config.get("Output") or config.get("OutputStart")
+    file_numbers = _get_int(config, "FileNumbers")
     if target_seed_raw or output_seed_raw or file_numbers is not None:
-        source_path = _resolve_existing_path(_resolve_path(base_dir, batch_config.get("Source")))
+        source_path = _resolve_existing_path(_resolve_path(base_dir, config.get("Source")))
         target_seed_path = _resolve_existing_path(_resolve_path(base_dir, target_seed_raw))
         output_seed_path = _resolve_path(base_dir, output_seed_raw) if output_seed_raw else None
 
@@ -123,7 +120,7 @@ def main() -> int:
         )
 
         if file_numbers is None:
-            target_end_raw = batch_config.get("TargetEnd")
+            target_end_raw = config.get("TargetEnd")
             if target_end_raw:
                 target_end_path = _resolve_path(base_dir, target_end_raw)
                 _p2, end_index, _stem2, _ext2 = _split_numbered_filename(target_end_path)
@@ -172,7 +169,7 @@ def main() -> int:
                 sys.executable,
                 str(script_path),
                 "--config",
-                str(swap_config_path),
+                str(config_path),
                 "--source",
                 str(source_path),
                 "--target",
@@ -201,8 +198,8 @@ def main() -> int:
         return 1 if failures else 0
 
     # Old config format fallback (Source/Target) for compatibility.
-    source_path = _resolve_existing_path(_resolve_path(base_dir, batch_config.get("Source")))
-    target_seed_path = _resolve_existing_path(_resolve_path(base_dir, args.target or batch_config.get("Target")))
+    source_path = _resolve_existing_path(_resolve_path(base_dir, config.get("Source")))
+    target_seed_path = _resolve_existing_path(_resolve_path(base_dir, args.target or config.get("Target")))
     prefix, default_start, stem_suffix, ext = _split_numbered_filename(target_seed_path)
     start = args.start if args.start is not None else default_start
     end = args.end if args.end is not None else start + 9
@@ -225,7 +222,7 @@ def main() -> int:
             sys.executable,
             str(script_path),
             "--config",
-            str(swap_config_path),
+            str(config_path),
             "--source",
             str(source_path),
             "--target",
