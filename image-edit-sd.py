@@ -83,6 +83,20 @@ def _load_prompt_from_config(base_dir: Path, config: dict[str, str]) -> tuple[st
     return _render_prompt_template(template_text, config), template_path
 
 
+def _merge_prompt_affixes(
+    prompt: str,
+    prefix: str | None,
+    suffix: str | None,
+) -> str:
+    parts: list[str] = []
+    if prefix and prefix.strip():
+        parts.append(prefix.strip())
+    parts.append(prompt.strip())
+    if suffix and suffix.strip():
+        parts.append(suffix.strip())
+    return ". ".join(part for part in parts if part)
+
+
 def _pick_unique_output_path(out_dir: Path, stem: str, ext: str) -> Path:
     candidate = out_dir / f"{stem}.{ext}"
     if not candidate.exists():
@@ -305,12 +319,41 @@ def main() -> int:
         ),
     )
     parser.add_argument(
+        "--prompt-prefix",
+        default=None,
+        help="Prompt prefix appended before the rendered prompt.",
+    )
+    parser.add_argument(
+        "--prompt-suffix",
+        default=None,
+        help="Prompt suffix appended after the rendered prompt.",
+    )
+    parser.add_argument(
         "--out",
         default="",
         help=(
             "Output path. Default: same folder as input image when using --input, otherwise current project folder; "
             "filename is based on prompt template and auto-increments if needed."
         ),
+    )
+    parser.add_argument(
+        "--edit-mode",
+        choices=["auto", "generate", "search-and-replace"],
+        default="auto",
+        help=(
+            "Edit mode. auto uses search-and-replace when SearchPrompt exists, otherwise generate."
+        ),
+    )
+    parser.add_argument(
+        "--search-prompt",
+        default=None,
+        help="Short description of the object/region to replace for search-and-replace mode.",
+    )
+    parser.add_argument(
+        "--grow-mask",
+        type=int,
+        default=None,
+        help="Search-and-replace grow_mask value from 0 to 20.",
     )
     parser.add_argument(
         "--service",
@@ -329,7 +372,7 @@ def main() -> int:
         "--strength",
         type=float,
         default=None,
-        help="Image-to-image strength from 0 to 1 (default: config Strength or 0.65).",
+        help="Image-to-image strength from 0 to 1 (default: config Strength or 0.30).",
     )
     parser.add_argument(
         "--aspect-ratio",
@@ -396,10 +439,37 @@ def main() -> int:
     else:
         prompt_template_path = _resolve_config_path(base_dir, config.get("Prompt"), "prompt/c1.txt")
 
+    prompt_prefix = (
+        args.prompt_prefix if args.prompt_prefix is not None else config.get("PromptPrefix")
+    )
+    prompt_suffix = (
+        args.prompt_suffix if args.prompt_suffix is not None else config.get("PromptSuffix")
+    )
+    args.prompt = _merge_prompt_affixes(args.prompt, prompt_prefix, prompt_suffix)
+
     if not args.api_key_file:
         args.api_key_file = str(
             _resolve_config_path(base_dir, config.get("Key"), "key-sd-202603.txt")
         )
+
+    search_prompt = (
+        args.search_prompt if args.search_prompt is not None else config.get("SearchPrompt")
+    )
+    if search_prompt is not None:
+        search_prompt = search_prompt.strip() or None
+
+    grow_mask = args.grow_mask if args.grow_mask is not None else _parse_optional_int(config.get("GrowMask"))
+
+    edit_mode = args.edit_mode
+    if edit_mode == "auto":
+        edit_mode = "search-and-replace" if input_path and search_prompt else "generate"
+
+    if edit_mode == "search-and-replace" and not input_path:
+        raise RuntimeError("search-and-replace requires an input image.")
+    if edit_mode == "search-and-replace" and not search_prompt:
+        raise RuntimeError("search-and-replace requires SearchPrompt or --search-prompt.")
+    if grow_mask is not None and not 0 <= grow_mask <= 20:
+        raise RuntimeError("grow_mask must be between 0 and 20.")
 
     service = args.service
     if service == "auto":
@@ -418,7 +488,7 @@ def main() -> int:
     if strength is None:
         strength = _parse_optional_float(config.get("Strength"))
     if strength is None and input_path:
-        strength = 0.65
+        strength = 0.30
 
     aspect_ratio = (args.aspect_ratio or config.get("AspectRatio") or "").strip() or None
     negative_prompt = (
@@ -441,8 +511,10 @@ def main() -> int:
     cfg_scale = (
         args.cfg_scale if args.cfg_scale is not None else _parse_optional_float(config.get("CfgScale"))
     )
+    if cfg_scale is None and service == "sd3" and input_path:
+        cfg_scale = 5.0
 
-    if input_path and strength is None:
+    if edit_mode == "generate" and input_path and strength is None:
         raise RuntimeError("Missing strength for image-to-image request.")
 
     if strength is not None and not 0 <= strength <= 1:
@@ -465,7 +537,15 @@ def main() -> int:
     if seed is not None and seed > 0:
         fields.append(("seed", str(seed)))
 
-    if service == "core":
+    if edit_mode == "search-and-replace":
+        url = f"{STABILITY_API_BASE}/v2beta/stable-image/edit/search-and-replace"
+        assert input_path is not None
+        assert search_prompt is not None
+        files.append(("image", input_path))
+        fields.append(("search_prompt", search_prompt))
+        if grow_mask is not None:
+            fields.append(("grow_mask", str(grow_mask)))
+    elif service == "core":
         url = f"{STABILITY_API_BASE}/v2beta/stable-image/generate/core"
     else:
         url = f"{STABILITY_API_BASE}/v2beta/stable-image/generate/sd3"
@@ -473,6 +553,7 @@ def main() -> int:
         if cfg_scale is not None:
             fields.append(("cfg_scale", _stringify_number(cfg_scale)))
         if input_path:
+            assert strength is not None
             fields.append(("mode", "image-to-image"))
             fields.append(("strength", _stringify_number(strength)))
             files.append(("image", input_path))
@@ -494,6 +575,7 @@ def main() -> int:
                 "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
                 "ok": False,
                 "service": service,
+                "edit_mode": edit_mode,
                 "url": url,
                 "input": str(input_path) if input_path else None,
                 "error": str(e),
@@ -511,6 +593,7 @@ def main() -> int:
             "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
             "ok": True,
             "service": service,
+            "edit_mode": edit_mode,
             "url": url,
             "input": str(input_path) if input_path else None,
             "out": args.out,
@@ -521,6 +604,8 @@ def main() -> int:
             "style_preset": style_preset,
             "seed": seed,
             "cfg_scale": cfg_scale,
+            "search_prompt": search_prompt,
+            "grow_mask": grow_mask,
             "output_format": output_format,
             "response_content_type": response_content_type,
             "prompt": _redact_event_value(args.prompt),
