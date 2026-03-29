@@ -1,4 +1,4 @@
-keep face features and hair color. change cloth to white g-cup sexy tight slim:
+keep face features and hair color. change cloth to {SwitchColor} g-cup sexy tight slim:
 A female dress in Japanese high school girl student wearing a modern navy-blue sailor uniform 
 with white stripe collar, red ribbon bow, pleated skirt, knee-high socks, polished loafers, 
 soft natural lighting, realistic fabric texture, clean classroom background, 

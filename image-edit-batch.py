@@ -145,12 +145,28 @@ def main() -> int:
                 "--config",
                 str(tmp_path),
             ]
-            completed = subprocess.run(command, cwd=str(base_dir))
+            completed = subprocess.run(
+                command,
+                cwd=str(base_dir),
+                capture_output=True,
+                text=True,
+            )
             if completed.returncode != 0:
-                message = f"Exit code {completed.returncode}"
-                print(f"[{prompt_index}] ERROR {message}")
+                message = (
+                    completed.stderr
+                    or completed.stdout
+                    or f"Exit code {completed.returncode}"
+                ).strip()
+                if completed.returncode == 4:
+                    print(f"[{prompt_index}] MODERATION {message}")
+                else:
+                    print(f"[{prompt_index}] ERROR {message}")
                 failures.append((prompt_index, message))
                 continue
+
+            out = (completed.stdout or "").strip()
+            if out:
+                print(out)
 
             if args.sleep > 0:
                 time.sleep(args.sleep)

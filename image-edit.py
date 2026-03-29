@@ -13,6 +13,28 @@ import urllib.request
 XAI_API_BASE = "https://api.x.ai/v1"
 
 
+class ApiRequestError(RuntimeError):
+    def __init__(
+        self,
+        status_code: int,
+        error_code: str,
+        error_message: str,
+        raw_body: str,
+        usage: dict | None = None,
+    ) -> None:
+        self.status_code = status_code
+        self.error_code = error_code
+        self.error_message = error_message
+        self.raw_body = raw_body
+        self.usage = usage or {}
+        detail = error_message or raw_body[:2000] or "Unknown API error"
+        super().__init__(f"HTTP {status_code}: {detail}")
+
+    @property
+    def is_moderation_rejection(self) -> bool:
+        return "content moderation" in self.error_message.lower()
+
+
 def _read_kv_config(path: str) -> dict[str, str]:
     config: dict[str, str] = {}
     if not os.path.exists(path):
@@ -141,6 +163,23 @@ def _file_to_data_url(path: str) -> tuple[str, str]:
     return data_url, mime_type
 
 
+def _parse_error_response(err_body: str) -> tuple[str, str, dict]:
+    try:
+        payload = json.loads(err_body)
+    except Exception:
+        return "", err_body[:2000], {}
+
+    if not isinstance(payload, dict):
+        return "", err_body[:2000], {}
+
+    error_code = str(payload.get("code") or "").strip()
+    error_message = str(payload.get("error") or "").strip()
+    usage = payload.get("usage") if isinstance(payload.get("usage"), dict) else {}
+    if error_message:
+        return error_code, error_message, usage
+    return error_code, err_body[:2000], usage
+
+
 def _http_post_json(url: str, api_key: str, payload: dict) -> dict:
     body = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(
@@ -160,12 +199,18 @@ def _http_post_json(url: str, api_key: str, payload: dict) -> dict:
             resp_bytes = resp.read()
             return json.loads(resp_bytes.decode("utf-8"))
     except urllib.error.HTTPError as e:
-        # Avoid printing secrets; show a compact server error.
         try:
             err_body = e.read().decode("utf-8", errors="replace")
         except Exception:
             err_body = ""
-        raise RuntimeError(f"HTTP {e.code}: {err_body[:2000]}") from None
+        error_code, error_message, usage = _parse_error_response(err_body)
+        raise ApiRequestError(
+            status_code=e.code,
+            error_code=error_code,
+            error_message=error_message,
+            raw_body=err_body,
+            usage=usage,
+        ) from None
 
 
 def _download_to_file(url: str, out_path: str) -> None:
@@ -338,6 +383,31 @@ def main() -> int:
     url = f"{XAI_API_BASE}/images/edits"
     try:
         result = _http_post_json(url, api_key, payload)
+    except ApiRequestError as e:
+        _append_run_log(
+            base_dir,
+            {
+                "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
+                "ok": False,
+                "error": str(e),
+                "error_code": e.error_code,
+                "error_message": e.error_message,
+                "moderation_rejected": e.is_moderation_rejection,
+                "usage": e.usage,
+                "model": args.model,
+                "response_format": args.response_format,
+                "resolution": args.resolution,
+                "quality": args.quality,
+                "input": args.input,
+                "prompt_template": str(prompt_template_path),
+                "prompt_preview": args.prompt[:500],
+            },
+        )
+        if e.is_moderation_rejection:
+            print(f"Rejected by content moderation: {e.error_message}", file=sys.stderr)
+            return 4
+        print(str(e), file=sys.stderr)
+        return 1
     except Exception as e:
         _append_run_log(
             base_dir,
@@ -350,6 +420,8 @@ def main() -> int:
                 "resolution": args.resolution,
                 "quality": args.quality,
                 "input": args.input,
+                "prompt_template": str(prompt_template_path),
+                "prompt_preview": args.prompt[:500],
             },
         )
         raise
