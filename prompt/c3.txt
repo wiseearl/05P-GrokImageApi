@@ -1,2 +1,2 @@
 Keep face features and hair color.
-change cloth to g-cup ,{SwitchColor},teddy Plush material nightgown, slim
+change cloth to e-cup ,{SwitchColor},teddy Plush material nightgown, slim

@@ -54,6 +54,10 @@ def _split_numbered_prompt_path(path: Path) -> tuple[str, int, str]:
     return prefix, start_index, path.suffix
 
 
+def _read_optional_config_value(config: dict[str, str], key: str) -> str:
+    return (config.get(key) or "").strip()
+
+
 def _write_kv_config(path: Path, config: dict[str, str]) -> None:
     lines = [f"{k}={v}" for k, v in sorted(config.items())]
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -109,6 +113,12 @@ def main() -> int:
 
     prompt_seed_path = _resolve_path(base_dir, base_config.get("Prompt"))
     prompt_prefix, start_index, prompt_suffix = _split_numbered_prompt_path(prompt_seed_path)
+    prompt_seed_text = prompt_seed_path.read_text(encoding="utf-8")
+    switch_country = _read_optional_config_value(base_config, "SwitchCountry")
+    if "{SwitchCountry}" in prompt_seed_text and not switch_country:
+        raise RuntimeError(
+            "Prompt template uses {SwitchCountry} but SwitchCountry is missing in config."
+        )
 
     failures: list[tuple[int, str]] = []
 
@@ -123,6 +133,8 @@ def main() -> int:
 
         rel_prompt = os.path.relpath(prompt_file, base_dir).replace("\\", "/")
         run_config = dict(base_config)
+        if switch_country:
+            run_config["SwitchCountry"] = switch_country
         run_config["Prompt"] = rel_prompt
         run_config.pop("FileNumbers", None)
 
