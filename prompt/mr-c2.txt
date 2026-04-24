@@ -1,0 +1,2 @@
+keep face features and hair color. she({SwitchCountry}) change cloth to {SwitchColor}:
+Shang dynasty noble warrior woman, bronze armor mixed with silk, fitted waist design, side slit dress, jade ornaments, {SwitchColor} and gold palette, mysterious aura, elegant posture, cinematic wuxia lighting

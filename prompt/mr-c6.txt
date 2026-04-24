@@ -1,0 +1,2 @@
+keep face features and hair color. she({SwitchCountry}) change cloth to {SwitchColor}:
+Three Kingdoms female general, battle armor mixed with silk dress, exposed leg through slit armor skirt, {SwitchColor} theme, heroic stance, wind-blown cape, epic cinematic lighting
