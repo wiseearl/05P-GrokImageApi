@@ -1,0 +1,11 @@
+keep face features and hair color. she({SwitchCountry})
+change clothing color to {SwitchColor}:
+
+A 32-year-old woman relaxing alone under moonlight in an open-air luxury bathtub on a balcony,
+comfortably covered with bubbles and a bath towel, modest and non-revealing,
+
+soft moonlight illuminating the scene, stars in the night sky,
+gentle steam rising, calm and serene atmosphere,
+
+peaceful expression, relaxed posture, spa-like environment,
+cinematic composition, elegant lighting, photorealistic, ultra detailed, 8k

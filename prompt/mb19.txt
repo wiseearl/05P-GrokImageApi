@@ -1,0 +1,13 @@
+keep face features and hair color. she({SwitchCountry})
+change clothing color to {SwitchColor}:
+
+A 29-year-old woman relaxing in a modern black marble bathroom,
+sitting in a bathtub comfortably covered with dense bubbles and a bath towel, fully covered and non-revealing,
+
+calm and elegant mood, spa-like and peaceful atmosphere,
+natural upright posture, relaxed expression,
+
+dramatic yet soft lighting highlighting the interior textures and materials,
+focus on architecture, lighting, and ambiance rather than the body,
+
+clean composition, photorealistic, ultra detailed, 8k

@@ -1,0 +1,11 @@
+keep face features and hair color. she({SwitchCountry})
+change clothing color to {SwitchColor}:
+
+A 32-year-old woman relaxing in a bubble bath in a clean, modern bathroom,
+comfortably covered with foam and a bath towel, modest and non-revealing,
+
+holding a smartphone casually at a distance, capturing a relaxed moment,
+natural expression, calm and comfortable posture,
+
+warm ambient lighting, spa-like atmosphere,
+elegant composition, photorealistic, ultra detailed

@@ -1,0 +1,14 @@
+keep face features and hair color. she({SwitchCountry})
+change outfit color to {SwitchColor}:
+
+A beautiful 35-year-old {SwitchCountry} woman at a tropical resort,
+wearing a modest elegant resort dress with short sleeves,
+fully covered chest and torso, knee-length skirt,
+stylish sunglasses, natural skin texture,
+
+sitting upright on a resort terrace beside an infinity pool,
+reading a book, relaxed posture, neutral expression,
+family-friendly vacation fashion,
+
+golden hour sunlight, palm trees, calm atmosphere,
+photorealistic, ultra detailed

@@ -1,0 +1,12 @@
+keep face features and hair color. she({SwitchCountry})
+change outfit color to {SwitchColor}:
+
+A beautiful 35-year-old {SwitchCountry} woman in a festive Christmas outfit,
+wearing a cozy red holiday sweater dress with a Santa hat,
+warm and elegant winter style, soft fabric texture,
+
+sitting comfortably by a fireplace, decorated Christmas tree in the background,
+warm cozy lighting, glowing holiday ambiance,
+relaxed posture, cheerful and friendly smile,
+
+cinematic composition, soft shadows, photorealistic, ultra detailed, masterpiece

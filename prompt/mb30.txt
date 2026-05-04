@@ -1,0 +1,9 @@
+keep face features and hair color. she({SwitchCountry})
+change clothing color to {SwitchColor}:
+
+A 18-year-old sexy young lady relaxing in an open-air luxury bathtub on a balcony under moonlight,
+covered with foam and a bath towel,
+
+stars visible in the sky, gentle steam,
+calm and serene atmosphere,
+cinematic composition, ultra detailed, 8k

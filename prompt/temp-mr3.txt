@@ -1,1 +1,3 @@
-she(Ukrain) keep face features and hair color.Change outfit to a nature-inspired Ukrainian attire: blue and yellow layered garments, sunflower patterns, light armor details, flowing fabric, gentle and modest silhouette, warm countryside lighting.
+keep face features and hair color.she({SwitchCountry}) change cloth to {SwitchColor} sexy tight slim:
+A female dress in 
+Australian white valkyrie warrior, white-gold armor, flowing cape, dramatic sunset sky, glowing highlights, epic cinematic lighting

@@ -1,0 +1,14 @@
+keep face features and hair color. she({SwitchCountry})
+change clothing color to {SwitchColor}:
+
+A 27-year-old {SwitchCountry} woman spending time outdoors with her young daughter,
+both wearing casual, modest summer outfits suitable for a beach day,
+
+walking together near the shoreline, gentle waves in the background,
+golden hour sunset, tropical beach environment,
+
+natural interaction, holding hands, smiling,
+family-friendly, wholesome lifestyle photography,
+
+soft lighting, cinematic composition,
+photorealistic, high detail

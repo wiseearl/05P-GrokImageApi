@@ -1,0 +1,8 @@
+keep face features and hair color. she({SwitchCountry})
+change clothing color to {SwitchColor}:
+
+A 18-year-old sexy young lady relaxing in a modern freestanding bathtub in a luxury bathroom,
+covered with bubbles and a bath towel, modest and non-revealing,
+
+soft lighting, city view in the background,
+calm atmosphere, photorealistic, 8k

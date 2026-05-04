@@ -1,1 +1,3 @@
-she(Ukrain) keep face features and hair color.Change outfit to a Ukrainian vyshyvanka-inspired warrior attire: white embroidered blouse with red and black patterns, layered with light armor, traditional skirt armor elements, modest and balanced silhouette, cultural detailing, soft natural lighting.
+keep face features and hair color.she({SwitchCountry}) change cloth to {SwitchColor} sexy tight slim:
+A female dress in 
+Australian white ranger warrior, sleeveless fitted armor, dual blades, dusty outback wind, sun flare lighting, cinematic epic tone

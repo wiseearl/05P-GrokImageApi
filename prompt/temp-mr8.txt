@@ -1,1 +1,3 @@
-she(Ukrain) keep face features and hair color.Change outfit to a historical royal guard uniform: blue and gold layered coat armor, embroidered patterns, structured yet modest silhouette, regal and composed presence.
+keep face features and hair color.she({SwitchCountry}) change cloth to {SwitchColor} sexy tight slim:
+A female dress in 
+Australian white dual blade warrior, agile pose, tight armor, dust swirl effect, sunset glow, cinematic motion blur

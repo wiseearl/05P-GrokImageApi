@@ -1,0 +1,11 @@
+keep face features and hair color. she({SwitchCountry})
+change outfit to {SwitchColor}:
+
+A 32-year-old {SwitchCountry} woman wearing a modest casual summer outfit:
+loose short-sleeve linen shirt, knee-length skirt, light cardigan,
+fully covered chest and torso, family-friendly fashion,
+natural relaxed posture, neutral expression,
+
+walking on a tropical beach at golden hour,
+ocean waves in the background, warm cinematic lighting,
+photorealistic, high detail

@@ -1,0 +1,4 @@
+keep face features and hair color. she({SwitchCountry})
+change clothing color to {SwitchColor}:
+
+A 34-year-old woman bathing in a penthouse bathroom at night, city lights visible, soft candlelight, wrapped modestly, cinematic atmosphere

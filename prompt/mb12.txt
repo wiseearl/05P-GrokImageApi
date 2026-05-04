@@ -1,0 +1,11 @@
+keep face features and hair color. she({SwitchCountry})
+change clothing color to {SwitchColor}:
+
+A 28-year-old woman relaxing in a blue-toned milk bath with floating flower petals,
+comfortably covered with foam and a bath towel, modest and non-revealing,
+
+calm and dreamy mood, spa-like atmosphere,
+soft blue ambient lighting, gentle reflections on water,
+
+elegant composition, serene expression,
+photorealistic, ultra detailed

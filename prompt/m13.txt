@@ -1,0 +1,14 @@
+keep face features and hair color. she({SwitchCountry})
+change clothing color to {SwitchColor}:
+
+A beautiful 33-year-old {SwitchCountry} woman standing in the rain,
+wearing a stylish long-sleeve shirt or light jacket with non-transparent fabric,
+weather-appropriate, modest and natural appearance,
+
+standing under a street lamp at night, rain falling around her,
+soft neon reflections on wet pavement, cinematic urban atmosphere,
+
+gentle raindrops on clothing and hair, wind slightly moving her hair,
+calm and thoughtful expression, relaxed posture,
+
+cinematic lighting, moody tones, photorealistic, ultra detailed

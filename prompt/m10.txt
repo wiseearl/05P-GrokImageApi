@@ -1,0 +1,12 @@
+keep face features and hair color. she({SwitchCountry})
+change clothing color to {SwitchColor}:
+
+A radiant 32-year-old {SwitchCountry} woman watering flowers in a garden,
+wearing a light, elegant summer sundress with modest, non-transparent fabric,
+soft flowing design, natural and tasteful style,
+
+morning sunlight illuminating the scene, gentle breeze moving her hair,
+lush greenery and blooming flowers, peaceful atmosphere,
+
+relaxed and natural posture, warm and serene expression,
+cinematic composition, soft glow, photorealistic, ultra detailed, 8k

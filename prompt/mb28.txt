@@ -1,0 +1,8 @@
+keep face features and hair color. she({SwitchCountry})
+change clothing color to {SwitchColor}:
+
+A 18-year-old {SwitchCountry} sexy young lady relaxing in a traditional Japanese wooden ofuro bathtub,
+wrapped in a towel, steam rising,
+
+serene expression, soft natural light,
+calm and peaceful atmosphere, ultra detailed

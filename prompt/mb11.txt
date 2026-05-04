@@ -1,0 +1,4 @@
+keep face features and hair color. she({SwitchCountry})
+change clothing color to {SwitchColor}:
+
+A 33-year-old woman enjoying a rainforest-style shower, surrounded by tropical plants, wearing a light towel wrap, fresh and natural atmosphere, vibrant greens, photorealistic

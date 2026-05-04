@@ -1,0 +1,4 @@
+keep face features and hair color. she({SwitchCountry})
+change clothing color to {SwitchColor}:
+
+A 31-year-old woman relaxing in a bathtub filled with water and red rose petals, wearing a modest bath wrap, soft lighting, calm mood, long hair resting gently, photorealistic

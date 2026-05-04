@@ -1,0 +1,9 @@
+keep face features and hair color. she({SwitchCountry})
+change clothing color to {SwitchColor}:
+
+A 18-year-old sexy young lady relaxing in a black marble bathtub at night,
+covered with bubbles and a bath towel,
+
+city skyline visible through windows,
+soft candlelight, elegant atmosphere,
+cinematic lighting, photorealistic

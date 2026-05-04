@@ -1,0 +1,11 @@
+keep face features and hair color. she({SwitchCountry})
+change clothing color to {SwitchColor}:
+
+A 33-year-old woman relaxing in a milky bath in a bright, elegant bathroom,
+hair tied up, shoulders modestly covered with foam and a bath towel,
+
+calm and peaceful expression, spa-like atmosphere,
+warm sunlight coming through the window, soft natural glow,
+
+clean composition, elegant interior design,
+cinematic lighting, photorealistic, ultra detailed

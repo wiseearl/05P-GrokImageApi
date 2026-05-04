@@ -1,0 +1,16 @@
+keep face features and hair color. she({SwitchCountry})
+change clothing color to {SwitchColor}:
+
+A 30-year-old {SwitchCountry} woman gardening with her 5-year-old daughter,
+both engaged in a simple outdoor activity together,
+
+wearing a light, elegant summer dress made of non-transparent fabric,
+modest and comfortable, suitable for gardening,
+
+watering flowers together, the child holding a small watering can,
+sunny garden with blooming plants and greenery,
+
+soft natural sunlight, warm and peaceful atmosphere,
+gentle and caring interaction, natural smiles,
+
+photorealistic, ultra detailed, cinematic lighting

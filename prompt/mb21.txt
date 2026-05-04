@@ -1,0 +1,9 @@
+keep face features and hair color. she({SwitchCountry})
+change clothing color to {SwitchColor}:
+
+A 18-year-old sexy young lady with long wavy black hair relaxing in a luxurious marble bathtub filled with dense white bubbles,
+comfortably covered with foam and a bath towel, fully non-revealing,
+
+calm expression, soft candlelight and gentle steam,
+spa-like atmosphere, cinematic lighting,
+photorealistic, ultra detailed, 8k

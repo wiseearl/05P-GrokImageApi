@@ -1,0 +1,13 @@
+keep face features and hair color. she({SwitchCountry})
+change clothing color to {SwitchColor}:
+
+A 28-year-old {SwitchCountry} woman gently singing a lullaby while cradling her young daughter in a rocking chair,
+wearing comfortable, modest sleepwear or soft home loungewear,
+
+calm and nurturing interaction, peaceful bonding moment,
+dim cozy nursery lighting, warm and soothing atmosphere,
+
+soft shadows, gentle expressions, relaxed posture,
+family-friendly, wholesome scene,
+
+photorealistic, ultra detailed

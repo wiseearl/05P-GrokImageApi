@@ -1,0 +1,4 @@
+keep face features and hair color. she({SwitchCountry})
+change clothing color to {SwitchColor}:
+
+A 35-year-old woman bathing in a tub surrounded by candles, wearing a bath wrap, warm glow lighting, relaxed posture, peaceful and cozy atmosphere, photorealistic

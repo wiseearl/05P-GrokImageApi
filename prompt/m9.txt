@@ -1,0 +1,12 @@
+keep face features and hair color. she({SwitchCountry})
+change outfit color to {SwitchColor}:
+
+A refined 36-year-old {SwitchCountry} woman in an elegant silk nightgown or luxury loungewear,
+tasteful and fully covering, soft flowing fabric, sophisticated style,
+
+sitting comfortably on a luxury bed in a high-end bedroom,
+warm ambient lighting, modern interior design, calm and relaxed mood,
+natural posture, confident and composed expression,
+
+cinematic composition, soft shadows, detailed fabric texture,
+photorealistic, ultra detailed, masterpiece

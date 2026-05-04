@@ -1,0 +1,12 @@
+keep face features and hair color. she({SwitchCountry})
+change clothing color to {SwitchColor}:
+
+A 26-year-old {SwitchCountry} woman spending time with her young daughter in a sunny park,
+wearing comfortable athletic wear (full-length leggings and a modest fitted top or light jacket),
+casual and practical outfit, family-friendly appearance,
+
+gently pushing her daughter on a swing, both smiling naturally,
+green grass and trees in the background, warm sunlight filtering through leaves,
+
+joyful interaction, relaxed posture, wholesome family moment,
+cinematic golden hour lighting, photorealistic, ultra detailed
