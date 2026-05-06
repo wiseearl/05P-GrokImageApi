@@ -4,6 +4,7 @@ import json
 import mimetypes
 import os
 from pathlib import Path
+import re
 import sys
 import time
 import urllib.error
@@ -67,6 +68,20 @@ def _render_prompt_template(template_text: str, variables: dict[str, str]) -> st
     return rendered
 
 
+def _find_template_variables(template_text: str) -> set[str]:
+    return set(re.findall(r"\{([A-Za-z_][A-Za-z0-9_]*)\}", template_text))
+
+
+def _validate_prompt_variables(template_text: str, variables: dict[str, str]) -> None:
+    missing = sorted(
+        name for name in _find_template_variables(template_text) if not (variables.get(name) or "").strip()
+    )
+    if missing:
+        raise RuntimeError(
+            "Prompt template uses missing config variables: " + ", ".join(missing)
+        )
+
+
 def _resolve_config_path(
     base_dir: Path, configured_path: str | None, default_relative_path: str
 ) -> Path:
@@ -103,6 +118,7 @@ def _load_prompt_from_config(base_dir: Path, config: dict[str, str]) -> tuple[st
     with open(template_path, "r", encoding="utf-8") as f:
         template_text = f.read().strip()
 
+    _validate_prompt_variables(template_text, config)
     return _render_prompt_template(template_text, config), template_path
 
 

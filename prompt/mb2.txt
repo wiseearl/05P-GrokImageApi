@@ -1,4 +1,0 @@
-keep face features and hair color. she({SwitchCountry})
-change clothing color to {SwitchColor}:
-
-A 30-year-old {SwitchCountry} woman showering in a modern bathroom, wearing a light bath wrap or towel, water flowing gently, natural posture, steamy glass, soft lighting, photorealistic

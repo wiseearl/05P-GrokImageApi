@@ -63,6 +63,20 @@ def _write_kv_config(path: Path, config: dict[str, str]) -> None:
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
+def _find_template_variables(template_text: str) -> set[str]:
+    return set(re.findall(r"\{([A-Za-z_][A-Za-z0-9_]*)\}", template_text))
+
+
+def _validate_prompt_variables(template_text: str, config: dict[str, str]) -> None:
+    missing = sorted(
+        name for name in _find_template_variables(template_text) if not _read_optional_config_value(config, name)
+    )
+    if missing:
+        raise RuntimeError(
+            "Prompt template uses missing config variables: " + ", ".join(missing)
+        )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Batch-run image-edit.py using the numbered Prompt file from config-image-edit.config"
@@ -114,11 +128,7 @@ def main() -> int:
     prompt_seed_path = _resolve_path(base_dir, base_config.get("Prompt"))
     prompt_prefix, start_index, prompt_suffix = _split_numbered_prompt_path(prompt_seed_path)
     prompt_seed_text = prompt_seed_path.read_text(encoding="utf-8")
-    switch_country = _read_optional_config_value(base_config, "SwitchCountry")
-    if "{SwitchCountry}" in prompt_seed_text and not switch_country:
-        raise RuntimeError(
-            "Prompt template uses {SwitchCountry} but SwitchCountry is missing in config."
-        )
+    _validate_prompt_variables(prompt_seed_text, base_config)
 
     failures: list[tuple[int, str]] = []
 
@@ -133,8 +143,6 @@ def main() -> int:
 
         rel_prompt = os.path.relpath(prompt_file, base_dir).replace("\\", "/")
         run_config = dict(base_config)
-        if switch_country:
-            run_config["SwitchCountry"] = switch_country
         run_config["Prompt"] = rel_prompt
         run_config.pop("FileNumbers", None)
 
