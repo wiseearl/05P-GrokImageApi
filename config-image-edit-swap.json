@@ -1,0 +1,44 @@
+[
+  {
+    "Name": "Aavya",
+    "SwitchColor": "white color",
+    "SwitchCountry": "Russians",
+    "SwitchProfessional": "musician",
+    "Source": "./images/Jinguji/pic-bf.png"
+  },
+  {
+    "Name": "Azusa",
+    "SwitchColor": "white color",
+    "SwitchCountry": "Japanese",
+    "SwitchProfessional": "musician",
+    "Source": "./images/Azusa/pic-bf.png"
+  },
+  {
+    "Name": "Kavina",
+    "SwitchColor": "light gold color",
+    "SwitchCountry": "Finns",
+    "SwitchProfessional": "Fitness coach,gym owner",
+    "Source": "./images/Kavina/pic-race.png"
+  },
+  {
+    "Name": "Kuno",
+    "SwitchColor": "light gold color",
+    "SwitchCountry": "Finns",
+    "SwitchProfessional": "Fitness coach,gym owner",
+    "Source": "./images/Kuno/pic-bf-beach.jpg"
+  },
+  {
+    "Name": "Jesielle",
+    "SwitchColor": "yellow color",
+    "SwitchCountry": "Australian White",
+    "SwitchProfessional": "Chief Financial Officier",
+    "Source": "./images/Jesielle/pic-bikini-hq-beach.jpg"
+  },
+  {
+    "Name": "Jinguji",
+    "SwitchColor": "yellow color",
+    "SwitchCountry": "Japanese",
+    "SwitchProfessional": "Chief Financial Officier",
+    "Source": "./images/Jinguji/pic-bf.png"
+  }
+]

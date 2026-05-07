@@ -63,7 +63,7 @@ def _split_numbered_filename(path: Path) -> tuple[str, int, str, str]:
     The index is taken from the last digit group in the stem.
     """
 
-    match = re.fullmatch(r"(.*)(\d+)([^0-9]*)", path.stem)
+    match = re.fullmatch(r"(.*?)(\d+)([^0-9]*)", path.stem)
     if not match:
         raise RuntimeError(
             f"Filename must contain a number, for example bed1.jpg or bed1-swap.jpg: {path.name}"
