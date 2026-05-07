@@ -1,2 +1,6 @@
-keep face features and hair color.she({SwitchCountry}) change cloth to ,{SwitchColor},g-cup sexy tight slim:
-A female dress in British university girl wearing classic academic style, plaid skirt, knitted cardigan, loafers, holding books, historic brick university campus, soft cloudy daylight, cinematic realism
+keep face features and hair color.she({SwitchCountry}) change cloth to ,
+{SwitchColor},g-cup sexy tight slim:
+A female dress in British university {SwitchMajor}  girl 
+wearing classic academic style, plaid skirt, knitted cardigan, 
+loafers, holding books, historic brick university  {SwitchMajor} style campus, 
+soft cloudy daylight, cinematic realism

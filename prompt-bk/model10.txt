@@ -1,0 +1,5 @@
+keep face features and hair color. she({SwitchCountry})
+change clothing color to {SwitchColor}:
+
+「擁有迷人 {SwitchCountry} 美貌、長黑髮的金飾女模特兒，穿著奢華酒紅絲絨配金鏈內衣，在富麗宮殿風格伸展台上高貴行走。皇家氣質，極致華麗細節」
+Do not show any other people on the image.

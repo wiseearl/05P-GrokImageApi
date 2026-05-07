@@ -1,0 +1,5 @@
+keep face features and hair color. she({SwitchCountry})
+change clothing color to {SwitchColor}:
+
+A beautiful confident female runway model wearing a stylish black obsidian leather-inspired designer outfit with elegant high-fashion tailoring, glossy catwalk stage, luxury fashion week environment, dramatic shadows and spotlights, modern haute couture aesthetic, ultra realistic photography, detailed textures, 8k
+Do not show any other people on the image.

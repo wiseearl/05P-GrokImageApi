@@ -1,0 +1,5 @@
+keep face features and hair color. she({SwitchCountry})
+change clothing color to {SwitchColor}:
+
+A gorgeous blonde fashion model walking on an illuminated white runway, wearing a white and platinum designer dress with flowing silk layers, elegant long gloves, luxury angelic fashion aesthetic, soft cinematic lighting, graceful movement, vogue magazine style, photorealistic, ultra detailed, 8k
+Do not show any other people on the image.

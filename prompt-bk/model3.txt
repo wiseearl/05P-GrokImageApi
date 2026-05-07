@@ -1,0 +1,5 @@
+keep face features and hair color. she({SwitchCountry})
+change clothing color to {SwitchColor}:
+
+「擁有焦糖色肌膚的 {SwitchCountry} 美麗女模特兒，捲曲深色長髮，穿著翠綠色透視網紗水晶內衣，在現代極簡伸展台上強力擺姿。未來感舞台設計，鮮豔燈光，Vogue風格編輯照片，極致細膩」
+Do not show any other people on the image.

@@ -1,2 +1,5 @@
-keep face features and hair color.she({SwitchCountry}) change cloth to ,{SwitchColor},g-cup sexy tight slim:
-A female dress in French university girl wearing chic Parisian style, long elegant coat, soft blouse, A-line skirt, leather shoulder bag, European campus courtyard, golden hour lighting, fashion photography
+keep face features and hair color.she({SwitchCountry}) change cloth to ,
+{SwitchColor},g-cup sexy tight slim:
+A female dress in French university {SwitchMajor}  girl wearing chic Parisian style, 
+long elegant coat, soft blouse, A-line skirt, leather shoulder bag, 
+European  {SwitchMajor} style campus courtyard, golden hour lighting, fashion photography

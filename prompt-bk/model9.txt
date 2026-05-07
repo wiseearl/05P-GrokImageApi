@@ -1,0 +1,5 @@
+keep face features and hair color. she({SwitchCountry})
+change clothing color to {SwitchColor}:
+
+「高挑銀髮藍眼的美麗女模特兒，穿著未來感銀色金屬水晶內衣，在賽博龐克霓虹伸展台上戲劇性擺姿。高級科幻時尚風格，強烈對比打光」
+Do not show any other people on the image.

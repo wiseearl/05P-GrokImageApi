@@ -1,0 +1,5 @@
+keep face features and hair color. she({SwitchCountry})
+change clothing color to {SwitchColor}:
+
+A stunning elegant fashion model walking on a luxurious Paris runway, wearing a black and gold haute couture evening dress with a deep flowing silhouette, long wavy hair, confident expression, cinematic spotlight, glossy reflective runway floor, luxury fashion week atmosphere, ultra realistic, high detail fabric texture, vogue style photography, 8k
+Do not show any other people on the image.

@@ -1,0 +1,5 @@
+keep face features and hair color. she({SwitchCountry})
+change clothing color to {SwitchColor}:
+
+「紅髮的優雅 {SwitchCountry} 女模特兒，穿著精緻香檳{SwitchColor}刺繡內衣，在經典巴黎風伸展台上優雅前行。復古奢華氛圍，柔和華麗打光，8K超現實」
+Do not show any other people on the image.

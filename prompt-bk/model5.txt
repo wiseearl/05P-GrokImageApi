@@ -1,0 +1,5 @@
+keep face features and hair color. she({SwitchCountry})
+change clothing color to {SwitchColor}:
+
+An extremely beautiful runway model wearing a royal crimson red luxury gown with elegant shoulder cape and diamond accessories, walking confidently on a glamorous fashion stage, audience flashlights sparkling, cinematic fashion photography, sophisticated and stylish, ultra realistic skin and fabric details, 8k masterpiece
+Do not show any other people on the image.
