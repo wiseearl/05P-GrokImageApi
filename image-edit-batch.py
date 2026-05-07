@@ -79,7 +79,10 @@ def _validate_prompt_variables(template_text: str, config: dict[str, str]) -> No
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Batch-run image-edit.py using the numbered Prompt file from config-image-edit.config"
+        description=(
+            "Batch-run image-edit.py using the numbered Prompt file from config-image-edit.config "
+            "with prompt variables such as {SwitchColor} and {SwitchMajor} from the config"
+        )
     )
     parser.add_argument(
         "--config",

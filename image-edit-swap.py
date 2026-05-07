@@ -113,7 +113,13 @@ def _build_model_config(base_dir: Path, config_path: Path) -> dict[str, str]:
         raise RuntimeError(f"RoleName not found in {role_data_path.name}: {role_name}")
 
     merged = dict(config)
-    for key in ("SwitchColor", "SwitchCountry", "SwitchProfessional", "Source"):
+    for key in (
+        "SwitchColor",
+        "SwitchCountry",
+        "SwitchProfessional",
+        "SwitchMajor",
+        "Source",
+    ):
         value = (selected.get(key) or "").strip()
         if value:
             merged[key] = value

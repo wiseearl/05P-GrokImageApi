@@ -313,7 +313,7 @@ def main() -> int:
         default=None,
         help=(
             "Edit prompt. Default: read prompt template from the selected config file (Prompt=...) "
-            "and substitute variables from that config (e.g. {SwitchColor})."
+            "and substitute variables from that config (e.g. {SwitchColor}, {SwitchMajor})."
         ),
     )
     parser.add_argument(

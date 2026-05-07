@@ -4,6 +4,7 @@
     "SwitchColor": "white color",
     "SwitchCountry": "Russians",
     "SwitchProfessional": "musician",
+    "SwitchMajor": "Department of Music",
     "Source": "./images/Jinguji/pic-bf.png"
   },
   {
@@ -11,6 +12,7 @@
     "SwitchColor": "white color",
     "SwitchCountry": "Japanese",
     "SwitchProfessional": "musician",
+    "SwitchMajor": "Department of Music",
     "Source": "./images/Azusa/pic-bf.png"
   },
   {
@@ -18,6 +20,7 @@
     "SwitchColor": "light gold color",
     "SwitchCountry": "Finns",
     "SwitchProfessional": "Fitness coach,gym owner",
+    "SwitchMajor": "Department of Business",
     "Source": "./images/Kavina/pic-race.png"
   },
   {
@@ -25,6 +28,7 @@
     "SwitchColor": "light gold color",
     "SwitchCountry": "Finns",
     "SwitchProfessional": "Fitness coach,gym owner",
+    "SwitchMajor": "Department of Business",
     "Source": "./images/Kuno/pic-bf-beach.jpg"
   },
   {
@@ -32,6 +36,7 @@
     "SwitchColor": "yellow color",
     "SwitchCountry": "Australian White",
     "SwitchProfessional": "Chief Financial Officier",
+    "SwitchMajor": "Department of English",
     "Source": "./images/Jesielle/pic-bikini-hq-beach.jpg"
   },
   {
@@ -39,6 +44,7 @@
     "SwitchColor": "yellow color",
     "SwitchCountry": "Japanese",
     "SwitchProfessional": "Chief Financial Officier",
+    "SwitchMajor": "Department of English",
     "Source": "./images/Jinguji/pic-bf.png"
   }
 ]
