@@ -1,0 +1,8 @@
+keep face features and hair color. she({SwitchCountry})
+change clothing color to {SwitchColor}:
+Japanese kneeling on the bed
+A stunning elegant fashion model, wearing a black and gold haute couture evening 
+dress with a deep flowing silhouette, long wavy hair, confident expression, 
+cinematic spotlight, luxury fashion week atmosphere, 
+ultra realistic, high detail fabric texture, vogue style photography, 8k
+Do not show any other people on the image.

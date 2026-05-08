@@ -1,7 +1,7 @@
 keep face features and hair color. she({SwitchCountry})
 change clothing color to {SwitchColor}:
 
-A 26-year-old {SwitchCountry} woman spending time with her young daughter in a sunny park,
+A 21-year-old {SwitchCountry} woman spending time with her 3-year-old young daughter in a sunny park,
 wearing comfortable athletic wear (full-length leggings and a modest fitted top or light jacket),
 casual and practical outfit, family-friendly appearance,
 

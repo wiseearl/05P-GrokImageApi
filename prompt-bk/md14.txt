@@ -1,7 +1,8 @@
 keep face features and hair color. she({SwitchCountry})
 change clothing color to {SwitchColor}:
 
-A 26-year-old {SwitchCountry} woman spending time at the beach with her young daughter,
+A 21-year-old {SwitchCountry} woman spending time at the beach with 
+her 3-year-old young daughter,
 both wearing modest, family-friendly beach outfits (light summer clothing or rash guard style),
 
 building a sandcastle together on the shore,

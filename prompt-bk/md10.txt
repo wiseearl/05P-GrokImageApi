@@ -1,11 +1,11 @@
 keep face features and hair color. she({SwitchCountry})
 change clothing color to {SwitchColor}:
 
-A 29-year-old {SwitchCountry} woman practicing a gentle yoga pose at home,
+A 21-year-old {SwitchCountry} woman practicing a gentle yoga pose at home,
 wearing comfortable, modest athletic wear (full-length leggings and a fitted top or light jacket),
 natural and practical outfit, family-friendly appearance,
 
-her 4-year-old daughter playfully mimicking her movements nearby,
+her 3-year-old daughter playfully mimicking her movements nearby,
 bright home studio with soft morning light, clean and airy space,
 
 warm and joyful interaction, relaxed expressions, bonding moment,

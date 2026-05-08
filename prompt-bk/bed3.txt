@@ -1,0 +1,6 @@
+ she({SwitchCountry}) keep face features and hair color.
+  change clothing to a {SwitchColor},g-cup, tight, elegant, comfortable bedtime outfit:
+同一人 正躺在床上 視角由上往下 俯瞰角度
+Modern Japanese adult woman bedtime outfit, pastel pajamas with a soft cardigan,
+ cozy tatami-style bedroom, fluffy slippers, gentle softness, 
+ woman relaxing before sleep, warm ambient lighting, elegant woman preparing to rest

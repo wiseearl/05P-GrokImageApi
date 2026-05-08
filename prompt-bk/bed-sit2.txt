@@ -1,0 +1,6 @@
+keep face features and hair color. she({SwitchCountry})
+change clothing color to {SwitchColor}:
+Japanese kneeling on the bed
+「金髮碧眼的美麗 {SwitchCountry} 女模特兒，優雅臉龐、火辣身材，穿著紅色緞面刺繡連體內衣。時裝週氛圍，動感姿勢，專業時尚攝影，電影級打光，超高細節」
+Do not show any other people on the image.
+
