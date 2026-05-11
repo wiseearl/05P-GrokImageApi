@@ -104,11 +104,36 @@ def _extract_message_text(payload: dict) -> str:
     raise RuntimeError(f"Unexpected response: {json.dumps(payload, ensure_ascii=False)[:2000]}")
 
 
-def _build_user_prompt(prompt_hint: str) -> str:
+def _extract_structured_prompts(payload: dict, prompt_number: int) -> list[str]:
+    message_text = _extract_message_text(payload)
+
+    try:
+        data = json.loads(message_text)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(f"Structured output is not valid JSON: {message_text[:2000]}") from exc
+
+    if not isinstance(data, dict):
+        raise RuntimeError(f"Structured output must be a JSON object: {message_text[:2000]}")
+
+    prompts = data.get("prompts")
+    if not isinstance(prompts, list):
+        raise RuntimeError(f"Structured output missing prompts array: {message_text[:2000]}")
+
+    cleaned_prompts = [item.strip() for item in prompts if isinstance(item, str) and item.strip()]
+    if len(cleaned_prompts) != prompt_number:
+        raise RuntimeError(
+            f"Expected {prompt_number} prompts from structured output, got {len(cleaned_prompts)}"
+        )
+
+    return cleaned_prompts
+
+
+def _build_user_prompt(prompt_hint: str, prompt_number: int) -> str:
     return (
-        "Generate one image creation prompt in English based on this hint. "
-        "Return only the prompt text, with no numbering, no title, no explanation, no quotes, and no markdown. "
-        "Make it detailed, vivid, and suitable for an image model. "
+        f"Generate {prompt_number} different image creation prompts in English based on this hint. "
+        "Each prompt must be detailed, vivid, and suitable for an image model. "
+        "Keep each prompt as plain prompt text only, with no numbering, no title, no explanation, no quotes, and no markdown. "
+        "Make the prompts meaningfully different from each other while staying faithful to the hint. "
         f"Hint: {prompt_hint}"
     )
 
@@ -168,27 +193,47 @@ def main() -> int:
     api_key = _read_api_key(api_key_path)
     prompt_dir.mkdir(parents=True, exist_ok=True)
 
-    for index in range(1, prompt_number + 1):
-        payload = {
-            "model": model,
-            "messages": [
-                {
-                    "role": "system",
-                    "content": (
-                        "You write clean image-generation prompts. "
-                        "Respond with prompt text only."
-                    ),
+    payload = {
+        "model": model,
+        "messages": [
+            {
+                "role": "system",
+                "content": (
+                    "You write clean image-generation prompts. "
+                    "Return valid JSON only, matching the requested schema."
+                ),
+            },
+            {
+                "role": "user",
+                "content": _build_user_prompt(prompt_hint, prompt_number),
+            },
+        ],
+        "temperature": 0.9,
+        "response_format": {
+            "type": "json_schema",
+            "json_schema": {
+                "name": "prompt_batch",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "prompts": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "minItems": prompt_number,
+                            "maxItems": prompt_number,
+                        }
+                    },
+                    "required": ["prompts"],
+                    "additionalProperties": False,
                 },
-                {
-                    "role": "user",
-                    "content": _build_user_prompt(prompt_hint),
-                },
-            ],
-            "temperature": 0.9,
-        }
+            },
+        },
+    }
 
-        result = _http_post_json(f"{XAI_API_BASE}/chat/completions", api_key, payload)
-        generated_prompt = _extract_message_text(result)
+    result = _http_post_json(f"{XAI_API_BASE}/chat/completions", api_key, payload)
+    generated_prompts = _extract_structured_prompts(result, prompt_number)
+
+    for index, generated_prompt in enumerate(generated_prompts, start=1):
         file_content = _compose_file_content(prompt_prefix, generated_prompt)
 
         out_path = prompt_dir / f"{prompt_file_head}{index}.txt"
