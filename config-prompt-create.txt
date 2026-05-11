@@ -1,0 +1,6 @@
+prompt-prefix="she({SwitchCountry}) keep face features and hair color. change clothing to a {SwitchColor} ,e-cup,sexy,tight "
+prompt-hint="白色polo運動衫, 白色運動迷你短裙,大學美女服飾"
+prompt-file-head="temp-mem"
+prompt-number=10
+Key=image2image2026.txt
+prompt-dir=./prompt

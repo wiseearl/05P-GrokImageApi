@@ -5,7 +5,23 @@
     "SwitchCountry": "Russians",
     "SwitchProfessional": "musician",
     "SwitchMajor": "Department of Music",
-    "Source": "./images/Jinguji/pic-bf.png"
+    "Source": "./images/Aavya/pic-bfgrok.jpg"
+  },
+  {
+    "Name": "Aine",
+    "SwitchColor": "orange color",
+    "SwitchCountry": "Japanese",
+    "SwitchProfessional": "E-Commerce Manager",
+    "SwitchMajor": "Department of International Business",
+    "Source": "./images/Aine/pic-bf-nc.jpg"
+  },
+  {
+    "Name": "Amatsuka",
+    "SwitchColor": "red and purple gradient color",
+    "SwitchCountry": "Japanese",
+    "SwitchProfessional": "AI Engineer",
+    "SwitchMajor": "Department of Information Technology",
+    "Source": "./images/Amatsuka/pic-bf-nc.jpg"
   },
   {
     "Name": "Azusa",
@@ -13,7 +29,15 @@
     "SwitchCountry": "Japanese",
     "SwitchProfessional": "musician",
     "SwitchMajor": "Department of Music",
-    "Source": "./images/Azusa/pic-bf.png"
+    "Source": "./images/Azusa/pic-bf-nc.jpg"
+  },
+  {
+    "Name": "Boss",
+    "SwitchColor": "white color",
+    "SwitchCountry": "French",
+    "SwitchProfessional": "President",
+    "SwitchMajor": "Department of Business",
+    "Source": "./images/Boss/pic-boss.png"
   },
   {
     "Name": "Kavina",
@@ -22,6 +46,22 @@
     "SwitchProfessional": "Fitness coach,gym owner",
     "SwitchMajor": "Department of Business",
     "Source": "./images/Kavina/pic-race.png"
+  },
+  {
+    "Name": "Kawakita",
+    "SwitchColor": "ivory",
+    "SwitchCountry": "Japanese",
+    "SwitchProfessional": "News Anchor",
+    "SwitchMajor": "Department of Business",
+    "Source": "./images/Kawakita/pic-bf-beach.jpg"
+  },
+  {
+    "Name": "Kitano",
+    "SwitchColor": "olive color",
+    "SwitchCountry": "Japanese",
+    "SwitchProfessional": "Rehabilitation Physician",
+    "SwitchMajor": "Medical Department",
+    "Source": "./images/Kitano/pic-bf-nc.jpg"
   },
   {
     "Name": "Kuno",
@@ -46,5 +86,37 @@
     "SwitchProfessional": "Chief Financial Officier",
     "SwitchMajor": "Department of English",
     "Source": "./images/Jinguji/pic-bf.png"
+  },
+  {
+    "Name": "Kana",
+    "SwitchColor": "jade color",
+    "SwitchCountry": "Japanese",
+    "SwitchProfessional": "Idol Artists",
+    "SwitchMajor": "Department of Dance",
+    "Source": "./images/Kana/pic-bf-nc.png"
+  },
+  {
+    "Name": "Sayoi",
+    "SwitchColor": "light blue and brown gradient color",
+    "SwitchCountry": "Japanese",
+    "SwitchProfessional": "Bodybuilder and Director of Biological Research Institute",
+    "SwitchMajor": "Department of Biological Sciences",
+    "Source": "./images/Sayoi/pic-bf-nc.png"
+  },
+  {
+    "Name": "Seto",
+    "SwitchColor": "red and white gradient color",
+    "SwitchCountry": "Japanese",
+    "SwitchProfessional": "Fund Manager",
+    "SwitchMajor": "Department of Business",
+    "Source": "./images/Seto/pic-bf-nc.jpg"
+  },
+  {
+    "Name": "Shiramine",
+    "SwitchColor": "purple and aqua gradient color",
+    "SwitchCountry": "Japanese",
+    "SwitchProfessional": "Badminton professional players and coaches",
+    "SwitchMajor": "Department of Physical Education",
+    "Source": "./images/Shiramine/pic-bf-nc.jpg"
   }
 ]
