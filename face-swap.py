@@ -204,6 +204,33 @@ def _append_multi_option(command: list[str], flag: str, tokens: list[str]) -> No
         command.extend(tokens)
 
 
+def _get_execution_providers(config: dict[str, str]) -> list[str]:
+    providers = _parse_tokens(_get_config_value(config, "ExecutionProviders", "execution_providers"))
+    if providers:
+        return providers
+    return ["cuda"]
+
+
+def _get_execution_device_ids(config: dict[str, str]) -> list[str]:
+    device_ids = _parse_tokens(_get_config_value(config, "ExecutionDeviceIds", "execution_device_ids"))
+    if device_ids:
+        return device_ids
+    return ["0"]
+
+
+def _normalize_provider_name(provider: str) -> str:
+    normalized = provider.strip().lower()
+    alias_map = {
+        "cpu": "cpuexecutionprovider",
+        "cuda": "cudaexecutionprovider",
+        "tensorrt": "tensorrtexecutionprovider",
+        "directml": "dmlexecutionprovider",
+        "openvino": "openvinoexecutionprovider",
+        "coreml": "coremlexecutionprovider",
+    }
+    return alias_map.get(normalized, normalized)
+
+
 def _build_facefusion_command(
     base_dir: Path,
     script_path: Path,
@@ -218,6 +245,9 @@ def _build_facefusion_command(
     processors = _parse_tokens(_get_config_value(config, "Processors", "processors") or "face_swapper")
     if not processors:
         processors = ["face_swapper"]
+
+    execution_providers = _get_execution_providers(config)
+    execution_device_ids = _get_execution_device_ids(config)
 
     command = [
         python_executable,
@@ -235,6 +265,10 @@ def _build_facefusion_command(
         str(output_path),
         "--processors",
         *processors,
+        "--execution-providers",
+        *execution_providers,
+        "--execution-device-ids",
+        *execution_device_ids,
     ]
 
     option_map = [
@@ -300,14 +334,46 @@ def _find_latest_failed_job(jobs_path: Path, started_at: float) -> Path | None:
     return max(pool, key=lambda p: p.stat().st_mtime)
 
 
-def _analyse_image_with_facefusion(python_executable: str, facefusion_cwd: Path, env: dict[str, str], image_path: Path) -> bool | None:
+def _get_available_execution_providers(
+    python_executable: str,
+    facefusion_cwd: Path,
+    env: dict[str, str],
+) -> list[str] | None:
+    code = "import onnxruntime as ort; print('\\n'.join(ort.get_available_providers()))"
+    try:
+        probe = subprocess.run(
+            [python_executable, "-c", code],
+            cwd=str(facefusion_cwd),
+            capture_output=True,
+            env=env,
+            text=True,
+        )
+    except OSError:
+        return None
+
+    if probe.returncode != 0:
+        return None
+
+    return [line.strip() for line in (probe.stdout or "").splitlines() if line.strip()]
+
+
+def _analyse_image_with_facefusion(
+    python_executable: str,
+    facefusion_cwd: Path,
+    env: dict[str, str],
+    image_path: Path,
+    execution_providers: list[str],
+    execution_device_ids: list[str],
+) -> bool | None:
     if not image_path.exists():
         return None
 
+    providers_code = repr(execution_providers)
+    device_ids_code = repr([int(device_id) for device_id in execution_device_ids])
     code = (
         "from facefusion import content_analyser, state_manager; "
-        "state_manager.init_item('execution_device_ids',[0]); "
-        "state_manager.init_item('execution_providers',['cpu']); "
+        f"state_manager.init_item('execution_device_ids',{device_ids_code}); "
+        f"state_manager.init_item('execution_providers',{providers_code}); "
         "state_manager.init_item('download_providers',['github','huggingface']); "
         "print('1' if content_analyser.analyse_image(r'''" + str(image_path) + "''') else '0')"
     )
@@ -369,6 +435,26 @@ def main() -> int:
 
     script_path = _find_facefusion_script(base_dir, config, args.facefusion_script)
     python_executable = _find_facefusion_python(config, args.facefusion_python)
+    execution_providers = _get_execution_providers(config)
+    execution_device_ids = _get_execution_device_ids(config)
+    env = _build_subprocess_env(base_dir, config)
+    available_execution_providers = _get_available_execution_providers(
+        python_executable,
+        script_path.parent,
+        env,
+    )
+    if available_execution_providers is not None:
+        available_lower = {_normalize_provider_name(provider) for provider in available_execution_providers}
+        missing_providers = [
+            provider for provider in execution_providers if _normalize_provider_name(provider) not in available_lower
+        ]
+        if missing_providers:
+            raise RuntimeError(
+                "Requested execution providers are unavailable in FaceFusion Python environment. "
+                f"Requested: {' '.join(execution_providers)}. "
+                f"Available: {' '.join(available_execution_providers)}. "
+                "Install a GPU-capable ONNX Runtime package in ../facefusion/.venv before running face-swap.py."
+            )
     command = _build_facefusion_command(
         base_dir,
         script_path,
@@ -386,7 +472,7 @@ def main() -> int:
         command,
         cwd=str(script_path.parent),
         capture_output=True,
-        env=_build_subprocess_env(base_dir, config),
+        env=env,
         text=True,
     )
     if completed.returncode != 0:
@@ -401,8 +487,10 @@ def main() -> int:
         target_flagged = _analyse_image_with_facefusion(
             python_executable,
             script_path.parent,
-            _build_subprocess_env(base_dir, config),
+            env,
             target_path,
+            execution_providers,
+            execution_device_ids,
         )
         if target_flagged is True:
             parts.append("Content analyser: target flagged (may be blocked)")
@@ -448,6 +536,8 @@ def main() -> int:
     print(f"Target: {target_path}")
     print(f"Output: {output_path}")
     print(f"FaceFusion: {script_path}")
+    print(f"Execution providers: {' '.join(execution_providers)}")
+    print(f"Execution device IDs: {' '.join(execution_device_ids)}")
     return 0
 
 
