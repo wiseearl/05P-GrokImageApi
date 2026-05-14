@@ -40,6 +40,14 @@
     "Source": "./images/Boss/pic-boss.png"
   },
   {
+    "Name": "Hayano",
+    "SwitchColor": "red color",
+    "SwitchCountry": "Japanese",
+    "SwitchProfessional": "musician,pianist",
+    "SwitchMajor": "Department of Music",
+    "Source": "./images/Hayano/pic-bf-nc.jpg"
+  },
+  {
     "Name": "Kavina",
     "SwitchColor": "light gold color",
     "SwitchCountry": "Finns",

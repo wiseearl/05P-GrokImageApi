@@ -1,6 +1,8 @@
  she({SwitchCountry}) keep face features and hair color. 
- change clothing to a {SwitchColor},g-cup, tight, elegant, comfortable bedtime outfit:
+ change clothing to a {SwitchColor},g-cup,  elegant, 
+ comfortable bedtime outfit:
 同一人 正躺在床上 視角由上往下 俯瞰角度
-Modern Spanish adult woman bedtime outfit, stylish European pajama set with a soft robe,
- elegant relaxed posture, warm bedroom lighting, calm Mediterranean atmosphere,
-  elegant woman preparing to rest
+Modern Spanish adult woman bedtime outfit, 
+stylish European pajama set with a soft robe,
+elegant relaxed posture, warm bedroom lighting, calm Mediterranean atmosphere,
+elegant woman preparing to rest
