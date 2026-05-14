@@ -357,45 +357,6 @@ def _get_available_execution_providers(
     return [line.strip() for line in (probe.stdout or "").splitlines() if line.strip()]
 
 
-def _analyse_image_with_facefusion(
-    python_executable: str,
-    facefusion_cwd: Path,
-    env: dict[str, str],
-    image_path: Path,
-    execution_providers: list[str],
-    execution_device_ids: list[str],
-) -> bool | None:
-    if not image_path.exists():
-        return None
-
-    providers_code = repr(execution_providers)
-    device_ids_code = repr([int(device_id) for device_id in execution_device_ids])
-    code = (
-        "from facefusion import content_analyser, state_manager; "
-        f"state_manager.init_item('execution_device_ids',{device_ids_code}); "
-        f"state_manager.init_item('execution_providers',{providers_code}); "
-        "state_manager.init_item('download_providers',['github','huggingface']); "
-        "print('1' if content_analyser.analyse_image(r'''" + str(image_path) + "''') else '0')"
-    )
-    try:
-        probe = subprocess.run(
-            [python_executable, "-c", code],
-            cwd=str(facefusion_cwd),
-            capture_output=True,
-            env=env,
-            text=True,
-        )
-    except OSError:
-        return None
-
-    out = (probe.stdout or "").strip()
-    if out == "1":
-        return True
-    if out == "0":
-        return False
-    return None
-
-
 def main() -> int:
     parser = argparse.ArgumentParser(description="Swap face using FaceFusion headless CLI")
     parser.add_argument("--config", default="config-swap.config", help="Config file path")
@@ -483,19 +444,6 @@ def main() -> int:
         parts.append(f"CWD: {script_path.parent}")
         parts.append("Command:")
         parts.append(_quote_command(command))
-
-        target_flagged = _analyse_image_with_facefusion(
-            python_executable,
-            script_path.parent,
-            env,
-            target_path,
-            execution_providers,
-            execution_device_ids,
-        )
-        if target_flagged is True:
-            parts.append("Content analyser: target flagged (may be blocked)")
-        elif target_flagged is False:
-            parts.append("Content analyser: target not flagged")
 
         if latest_failed_job:
             parts.append(f"Latest failed job: {latest_failed_job}")
