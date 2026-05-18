@@ -368,6 +368,29 @@ def _build_worn_reference_prompt(cloth_description: str) -> str:
     )
 
 
+def _append_prompt_log(
+    base_dir: Path,
+    source_path: Path,
+    cloth_path: Path,
+    cloth_description: str,
+    prompt: str,
+) -> Path:
+    log_path = base_dir / f"swap-cloth-log-{time.strftime('%Y-%m%d')}.txt"
+    lines = [
+        f"[{time.strftime('%Y-%m-%d %H:%M:%S')}]",
+        f"source={source_path}",
+        f"cloth={cloth_path}",
+        f"cloth_description={cloth_description}",
+        "image_prompt=",
+        prompt,
+        "-" * 80,
+        "",
+    ]
+    with log_path.open("a", encoding="utf-8") as handle:
+        handle.write("\n".join(lines))
+    return log_path
+
+
 def _run_image_edit_mode(
     base_dir: Path,
     source_path: Path,
@@ -382,6 +405,7 @@ def _run_image_edit_mode(
     key_path = _resolve_optional_path(base_dir, config.get("Key"))
     cloth_description = _resolve_cloth_description(base_dir, cloth_path, config)
     prompt = _build_worn_reference_prompt(cloth_description)
+    prompt_log_path = _append_prompt_log(base_dir, source_path, cloth_path, cloth_description, prompt)
 
     command = [
         sys.executable,
@@ -428,6 +452,7 @@ def _run_image_edit_mode(
     if not output_path.exists():
         raise RuntimeError(f"image-edit mode completed without output: {output_path}")
     print(f"Cloth description: {cloth_description}")
+    print(f"Prompt log: {prompt_log_path}")
     return output_path
 
 
