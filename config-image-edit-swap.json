@@ -45,7 +45,7 @@
     "SwitchCountry": "Japanese",
     "SwitchProfessional": "musician,pianist",
     "SwitchMajor": "Department of Music",
-    "Source": "./images/Hayano/pic-bf-nc.jpg"
+    "Source": "./images/Hayano/pic-bfgrok-nc.png"
   },
   {
     "Name": "Kavina",
@@ -126,5 +126,13 @@
     "SwitchProfessional": "Badminton professional players and coaches",
     "SwitchMajor": "Department of Physical Education",
     "Source": "./images/Shiramine/pic-bf-nc.jpg"
+  },
+  {
+    "Name": "Yuzuriha",
+    "SwitchColor": "black color",
+    "SwitchCountry": "Japanese",
+    "SwitchProfessional": "B&B General Manager and Chef",
+    "SwitchMajor": "Department of Public Policy and Management",
+    "Source": "./images/Yuzuriha/pic-bf-nc.png"
   }
 ]
