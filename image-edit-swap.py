@@ -40,9 +40,24 @@ def _parse_bool(value: str | None) -> bool:
     return (value or "").strip().lower() in {"1", "true", "yes", "on"}
 
 
-def _resolve_role_data_path(base_dir: Path, config_path: Path) -> Path:
+def _resolve_path(base_dir: Path, configured_path: str | None) -> Path:
+    raw = (configured_path or "").strip()
+    if not raw:
+        raise RuntimeError("Missing required path")
+    path = Path(raw)
+    if path.is_absolute():
+        return path.resolve()
+    return (base_dir / path).resolve()
+
+
+def _resolve_role_data_path(base_dir: Path, config_path: Path, config: dict[str, str]) -> Path:
+    role_data = (config.get("RoleData") or config.get("RoleDataPath") or "").strip()
+    if role_data:
+        return _resolve_path(base_dir, role_data)
+
     candidates = [
         config_path.with_suffix(".json"),
+        base_dir / "config-image-edit-swap.json",
         base_dir / "config-imge-edit-swap.json",
     ]
     for candidate in candidates:
@@ -103,7 +118,7 @@ def _build_model_config(base_dir: Path, config_path: Path) -> dict[str, str]:
     if not role_name:
         raise RuntimeError("RoleName is required when Model=true")
 
-    role_data_path = _resolve_role_data_path(base_dir, config_path)
+    role_data_path = _resolve_role_data_path(base_dir, config_path, config)
     presets = _load_role_presets(role_data_path)
     selected = next(
         (item for item in presets if item.get("Name", "").lower() == role_name.lower()),

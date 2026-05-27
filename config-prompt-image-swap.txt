@@ -1,28 +1,12 @@
 prompt-prefix="she({SwitchCountry}) keep face features and hair color. change clothing to a {SwitchColor},e-cup,sexy,tight "
-prompt-hint="Fair and tender skin, snow-white complexion,young sexy wife of countries in shower cloth in shower room enjoy the shower. smile at the cam"
-prompt-file-head="shower-sayoi"
+prompt-hint="Fair and tender skin, snow-white complexion,young sexy princess of countries in shower cloth in gym shower room enjoy the shower. smile at the cam"
+prompt-file-head="shower-kurumi"
 prompt-number=10
 Key=image2image2026.txt
 prompt-dir=./prompt
 
-
-# Prompt variable config (key=value)
-# Used for substituting placeholders like {SwitchColor} in prompt templates.
-SwitchColor=yellow color
-SwitchCountry=Australian White
-SwitchProfessional=Chief Financial Officier
-SwitchMajor=Department of English
-Source=./images/Jesielle/pic-bikini-hq-beach.jpg
-
-
 Key=image2image2026.txt
-Prompt=./prompt/shower-sayoi1.txt
-Output=./images/00Out/shower-sayoi1-swap.jpg
-
-FileNumbers=10
-
-Model=true
-RoleName=Sayoi
+RoleName=Kurumi
 
 
 FaceFusionDir=../facefusion
