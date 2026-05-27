@@ -72,12 +72,28 @@
     "Source": "./images/Kitano/pic-bf-nc.jpg"
   },
   {
+    "Name": "Kirella",
+    "SwitchColor": "olive color",
+    "SwitchCountry": "Swiss",
+    "SwitchProfessional": "Rehabilitation Physician",
+    "SwitchMajor": "Medical Department",
+    "Source": "./images/Kirella/pic-bf-nc.jpg"
+  },
+  {
     "Name": "Kuno",
     "SwitchColor": "light gold color",
     "SwitchCountry": "Finns",
     "SwitchProfessional": "Fitness coach,gym owner",
     "SwitchMajor": "Department of Business",
     "Source": "./images/Kuno/pic-bf-beach.jpg"
+  },
+  {
+    "Name": "Kurumi",
+    "SwitchColor": "white and skyblue gradient color",
+    "SwitchCountry": "Japanese",
+    "SwitchProfessional": "Dentisit",
+    "SwitchMajor": "Department of English",
+    "Source": "./images/Kurumi/pic-bfgrok-nc2.jpg"
   },
   {
     "Name": "Jesielle",
@@ -134,5 +150,13 @@
     "SwitchProfessional": "B&B General Manager and Chef",
     "SwitchMajor": "Department of Public Policy and Management",
     "Source": "./images/Yuzuriha/pic-bf-nc.png"
+  },
+  {
+    "Name": "Yarielle",
+    "SwitchColor": "black color",
+    "SwitchCountry": "British",
+    "SwitchProfessional": "B&B General Manager and Chef",
+    "SwitchMajor": "Department of Public Policy and Management",
+    "Source": "./images/Yarielle/pic-bfgrok-nc.png"
   }
 ]
