@@ -215,15 +215,20 @@ def main() -> int:
         print("Step 1/2: image-edit-batch.py")
         step1_cmd = [sys.executable, str(image_edit_batch), "--config", str(effective_config_path)]
         rc1, out_lines = _run_and_stream(step1_cmd, cwd=base_dir)
-        if rc1 != 0:
-            print(f"Step 1 failed (exit={rc1}). Stop.")
-            return rc1
-
         outputs = _iter_existing_files_from_output_lines(base_dir, out_lines)
         if not outputs:
+            if rc1 != 0:
+                print(f"Step 1 failed (exit={rc1}). Stop.")
+                return rc1
             raise RuntimeError(
                 "Step 1 succeeded but could not detect any output image paths from stdout. "
                 "Ensure image-edit.py prints the output path and the file exists."
+            )
+
+        if rc1 != 0:
+            print(
+                f"Step 1 completed with partial failures (exit={rc1}), "
+                f"continuing face swap for {len(outputs)} generated image(s)."
             )
 
         target_seed = outputs[0]
@@ -237,7 +242,7 @@ def main() -> int:
             str(target_seed),
         ]
         rc2, _out2 = _run_and_stream(step2_cmd, cwd=base_dir)
-        return rc2
+        return rc2 if rc2 != 0 else rc1
     finally:
         if temp_config_path and temp_config_path.exists():
             try:
