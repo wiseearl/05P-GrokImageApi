@@ -559,6 +559,73 @@ def _quote_command(command: list[str]) -> str:
     return subprocess.list2cmdline(command)
 
 
+def _build_face_swap_output_path(target_path: Path) -> Path:
+    return target_path.with_name(target_path.stem + "-swap" + target_path.suffix)
+
+
+def _parse_face_swap_output(stdout: str, fallback_output_path: Path) -> Path:
+    for raw_line in stdout.splitlines():
+        line = raw_line.strip()
+        if not line.startswith("Output:"):
+            continue
+        candidate = Path(line.split(":", 1)[1].strip())
+        if candidate.exists():
+            return candidate.resolve()
+    if fallback_output_path.exists():
+        return fallback_output_path.resolve()
+    raise RuntimeError(f"face-swap completed without output: {fallback_output_path}")
+
+
+def _run_face_swap(
+    base_dir: Path,
+    config_path: Path,
+    source_path: Path,
+    target_path: Path,
+) -> Path:
+    face_swap_script = (base_dir / "face-swap.py").resolve()
+    if not face_swap_script.exists():
+        raise RuntimeError(f"Missing script: {face_swap_script}")
+
+    output_path = _build_face_swap_output_path(target_path)
+    command = [
+        sys.executable,
+        str(face_swap_script),
+        "--config",
+        str(config_path),
+        "--source",
+        str(source_path),
+        "--target",
+        str(target_path),
+        "--output",
+        str(output_path),
+    ]
+
+    completed = subprocess.run(
+        command,
+        cwd=str(base_dir),
+        capture_output=True,
+        text=True,
+    )
+    if completed.returncode != 0:
+        parts = [
+            "[swap-cloth] face-swap follow-up failed",
+            f"Exit code: {completed.returncode}",
+            "Command:",
+            _quote_command(command),
+        ]
+        stdout_tail = _tail_text(completed.stdout or "")
+        stderr_tail = _tail_text(completed.stderr or "")
+        if stdout_tail:
+            parts.append("--- stdout (tail) ---")
+            parts.append(stdout_tail)
+        if stderr_tail:
+            parts.append("--- stderr (tail) ---")
+            parts.append(stderr_tail)
+        raise RuntimeError("\n".join(parts).strip())
+
+    return _parse_face_swap_output(completed.stdout or "", output_path)
+
+
 def _tail_text(text: str, max_lines: int = 120, max_chars: int = 12000) -> str:
     if not text:
         return ""
@@ -637,92 +704,95 @@ def main() -> int:
         raise RuntimeError(f"Cloth image not found: {cloth_path}")
 
     output_path = _build_output_path(source_path, cloth_path)
+    extracted_cloth_path: Path | None = None
+    generated_output: Path
 
     swap_mode = _get_swap_mode(config)
     if swap_mode == "image_edit":
         generated_output = _run_image_edit_mode(base_dir, source_path, cloth_path, output_path, config)
-        print(f"Source role: {config.get('source') or config.get('Source')}")
-        print(f"Source image: {source_path}")
-        print(f"Cloth image: {cloth_path}")
-        print("Swap mode: image_edit")
-        print(f"Generated image: {generated_output}")
-        print(f"Output: {output_path}")
-        return 0
+    else:
+        oot_root = _find_ootdiffusion_root(base_dir, config, args.ootdiffusion_dir)
+        oot_python = _find_ootdiffusion_python(oot_root, config, args.ootdiffusion_python)
+        _validate_ootdiffusion_assets(oot_root)
+        run_script = oot_root / "run" / "run_ootd.py"
+        images_output_dir = oot_root / "run" / "images_output"
+        images_output_dir.mkdir(parents=True, exist_ok=True)
 
-    oot_root = _find_ootdiffusion_root(base_dir, config, args.ootdiffusion_dir)
-    oot_python = _find_ootdiffusion_python(oot_root, config, args.ootdiffusion_python)
-    _validate_ootdiffusion_assets(oot_root)
-    run_script = oot_root / "run" / "run_ootd.py"
-    images_output_dir = oot_root / "run" / "images_output"
-    images_output_dir.mkdir(parents=True, exist_ok=True)
+        effective_cloth_path = cloth_path
+        if _parse_bool(config.get("ParseClothReference"), default=False):
+            extracted_cloth_path = _extract_worn_cloth_reference(
+                base_dir,
+                oot_root,
+                oot_python,
+                cloth_path,
+                config,
+                args.gpu_id,
+            )
+            effective_cloth_path = extracted_cloth_path
 
-    effective_cloth_path = cloth_path
-    extracted_cloth_path: Path | None = None
-    if _parse_bool(config.get("ParseClothReference"), default=False):
-        extracted_cloth_path = _extract_worn_cloth_reference(
-            base_dir,
-            oot_root,
+        _clear_previous_outputs(images_output_dir)
+        before_outputs = _detect_output_candidates(images_output_dir)
+        command = _build_ootdiffusion_command(
             oot_python,
-            cloth_path,
+            run_script,
+            source_path,
+            effective_cloth_path,
             config,
             args.gpu_id,
         )
-        effective_cloth_path = extracted_cloth_path
 
-    _clear_previous_outputs(images_output_dir)
-    before_outputs = _detect_output_candidates(images_output_dir)
-    command = _build_ootdiffusion_command(
-        oot_python,
-        run_script,
-        source_path,
-        effective_cloth_path,
-        config,
-        args.gpu_id,
-    )
+        started_at = time.time()
+        completed = subprocess.run(
+            command,
+            cwd=str(run_script.parent),
+            capture_output=True,
+            text=True,
+        )
+        if completed.returncode != 0:
+            parts = [
+                "[swap-cloth] OOTDiffusion failed",
+                f"Exit code: {completed.returncode}",
+                f"CWD: {run_script.parent}",
+                "Command:",
+                _quote_command(command),
+            ]
+            stdout_tail = _tail_text(completed.stdout or "")
+            stderr_tail = _tail_text(completed.stderr or "")
+            if stdout_tail:
+                parts.append("--- stdout (tail) ---")
+                parts.append(stdout_tail)
+            if stderr_tail:
+                parts.append("--- stderr (tail) ---")
+                parts.append(stderr_tail)
+            raise RuntimeError("\n".join(parts).strip())
 
-    started_at = time.time()
-    completed = subprocess.run(
-        command,
-        cwd=str(run_script.parent),
-        capture_output=True,
-        text=True,
-    )
-    if completed.returncode != 0:
-        parts = [
-            "[swap-cloth] OOTDiffusion failed",
-            f"Exit code: {completed.returncode}",
-            f"CWD: {run_script.parent}",
-            "Command:",
-            _quote_command(command),
-        ]
-        stdout_tail = _tail_text(completed.stdout or "")
-        stderr_tail = _tail_text(completed.stderr or "")
-        if stdout_tail:
-            parts.append("--- stdout (tail) ---")
-            parts.append(stdout_tail)
-        if stderr_tail:
-            parts.append("--- stderr (tail) ---")
-            parts.append(stderr_tail)
-        raise RuntimeError("\n".join(parts).strip())
+        try:
+            generated_output = _pick_generated_output(images_output_dir, before_outputs, started_at)
+            _copy_or_convert_image(generated_output, output_path)
+        finally:
+            if extracted_cloth_path and extracted_cloth_path.exists():
+                try:
+                    extracted_cloth_path.unlink()
+                except OSError:
+                    pass
 
-    try:
-        generated_output = _pick_generated_output(images_output_dir, before_outputs, started_at)
-        _copy_or_convert_image(generated_output, output_path)
-    finally:
-        if extracted_cloth_path and extracted_cloth_path.exists():
-            try:
-                extracted_cloth_path.unlink()
-            except OSError:
-                pass
+    face_swap_output = _run_face_swap(base_dir, config_path, source_path, output_path)
 
     print(f"Source role: {config.get('source') or config.get('Source')}")
     print(f"Source image: {source_path}")
     print(f"Cloth image: {cloth_path}")
+    print(f"Face swap source: {source_path}")
+    print(f"Face swap target: {output_path}")
+    print(f"Face swap output: {face_swap_output}")
+    print("FileNumbers: 1")
+    if swap_mode == "image_edit":
+        print("Swap mode: image_edit")
     if extracted_cloth_path:
         print("Cloth preprocessing: enabled")
     print(f"Generated image: {generated_output}")
     print(f"Output: {output_path}")
-    print(f"OOTDiffusion: {oot_root}")
+    if swap_mode != "image_edit":
+        print(f"OOTDiffusion: {oot_root}")
     return 0
 
 

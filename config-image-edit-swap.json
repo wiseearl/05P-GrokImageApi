@@ -32,12 +32,12 @@
     "Source": "./images/Azusa/pic-bf-nc.jpg"
   },
   {
-    "Name": "Boss",
-    "SwitchColor": "white color",
-    "SwitchCountry": "French",
-    "SwitchProfessional": "President",
-    "SwitchMajor": "Department of Business",
-    "Source": "./images/Boss/pic-boss.png"
+    "Name": "Fukada",
+    "SwitchColor": "red and blue mixed color",
+    "SwitchCountry": "Japanese",
+    "SwitchProfessional": "Fitness Instructors and Gym Owner",
+    "SwitchMajor": "Department of Public Policy and Management",
+    "Source": "./images/Fukada/pic-bf-nc.png"
   },
   {
     "Name": "Hayano",
@@ -45,13 +45,21 @@
     "SwitchCountry": "Japanese",
     "SwitchProfessional": "musician,pianist",
     "SwitchMajor": "Department of Music",
-    "Source": "./images/Hayano/pic-bfgrok-nc.png"
+    "Source": "./images/Hayano/pic-bfgrok-nc.jpg"
+  },
+  {
+    "Name": "Ito",
+    "SwitchColor": "brown",
+    "SwitchCountry": "Japanese",
+    "SwitchProfessional": "Music Band Vocalist",
+    "SwitchMajor": "Department of Public Policy and Management",
+    "Source": "./images/Ito/pic-bf-nc.jpg"
   },
   {
     "Name": "Kavina",
     "SwitchColor": "light gold color",
     "SwitchCountry": "Finns",
-    "SwitchProfessional": "Fitness coach,gym owner",
+    "SwitchProfessional": "Professional baseball cheerleader, dancer and idol artist",
     "SwitchMajor": "Department of Business",
     "Source": "./images/Kavina/pic-race.png"
   },
@@ -83,7 +91,7 @@
     "Name": "Kuno",
     "SwitchColor": "light gold color",
     "SwitchCountry": "Finns",
-    "SwitchProfessional": "Fitness coach,gym owner",
+    "SwitchProfessional": "Professional baseball cheerleader, dancer and idol artist",
     "SwitchMajor": "Department of Business",
     "Source": "./images/Kuno/pic-bf-beach.jpg"
   },
@@ -118,6 +126,14 @@
     "SwitchProfessional": "Idol Artists",
     "SwitchMajor": "Department of Dance",
     "Source": "./images/Kana/pic-bf-nc.png"
+  },
+  {
+    "Name": "Mitsuki",
+    "SwitchColor": "black and red gradient color",
+    "SwitchCountry": "Japanese",
+    "SwitchProfessional": "General Manager of Tony Media Company",
+    "SwitchMajor": "Department of Nursing",
+    "Source": "./images/Mitsuki/pic-bf-nc.jpg"
   },
   {
     "Name": "Sayoi",
