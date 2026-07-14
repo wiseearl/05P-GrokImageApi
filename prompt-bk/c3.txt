@@ -1,2 +1,7 @@
-Keep face features and hair color.
-change cloth to e-cup ,{SwitchColor},teddy Plush material nightgown, slim
+Change the outfit to a {SwitchColor} plush teddy-fleece nightgown with a soft, 
+cozy texture. 
+The nightgown should have an elegant slim silhouette, opaque fabric, 
+modest neckline, full chest coverage, and non-revealing design. 
+Natural lighting, realistic fabric details, tasteful fashion-edit style. 
+Avoid cleavage emphasis, transparent fabric, lingerie styling, 
+or sexualized posing.

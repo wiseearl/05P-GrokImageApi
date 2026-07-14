@@ -49,11 +49,19 @@
   },
   {
     "Name": "Ito",
-    "SwitchColor": "brown",
+    "SwitchColor": "brown color",
     "SwitchCountry": "Japanese",
     "SwitchProfessional": "Music Band Vocalist",
     "SwitchMajor": "Department of Public Policy and Management",
     "Source": "./images/Ito/pic-bf-nc.jpg"
+  },
+  {
+    "Name": "Kalista",
+    "SwitchColor": "ivory color",
+    "SwitchCountry": "Canadians",
+    "SwitchProfessional": "News Anchor",
+    "SwitchMajor": "Department of Business",
+    "Source": "./images/Kalista/pic-bf-beach.jpg"
   },
   {
     "Name": "Kavina",
@@ -69,7 +77,7 @@
     "SwitchCountry": "Japanese",
     "SwitchProfessional": "News Anchor",
     "SwitchMajor": "Department of Business",
-    "Source": "./images/Kawakita/pic-bf-beach.jpg"
+    "Source": "./images/Kawakita/pic-bf-nc.png"
   },
   {
     "Name": "Kitano",
@@ -104,6 +112,14 @@
     "Source": "./images/Kurumi/pic-bfgrok-nc2.jpg"
   },
   {
+    "Name": "Momo",
+    "SwitchColor": "tomato color",
+    "SwitchCountry": "Japanese",
+    "SwitchProfessional": "Artist and Art Gallery Manager",
+    "SwitchMajor": "Department of Finance",
+    "Source": "./images/Momo/pic-bfgrok-nc.jpg"
+  },
+  {
     "Name": "Jesielle",
     "SwitchColor": "yellow color",
     "SwitchCountry": "Australian White",
@@ -134,6 +150,38 @@
     "SwitchProfessional": "General Manager of Tony Media Company",
     "SwitchMajor": "Department of Nursing",
     "Source": "./images/Mitsuki/pic-bf-nc.jpg"
+  },
+  {
+    "Name": "Ono",
+    "SwitchColor": "purple color",
+    "SwitchCountry": "Japanese",
+    "SwitchProfessional": "Internal medicine physician, weight management",
+    "SwitchMajor": "Department of Business",
+    "Source": "./images/Ono/pic-bf-nc.png"
+  },
+  {
+    "Name": "SanA",
+    "SwitchColor": "light red and silver gradient color",
+    "SwitchCountry": "Japanese",
+    "SwitchProfessional": "Nurse/Christian Nuns, Medical Care/Devotion",
+    "SwitchMajor": "Department of Nursing",
+    "Source": "./images/SanA/pic-bf-A-nc.png"
+  },
+  {
+    "Name": "SanB",
+    "SwitchColor": "grey and silver gradient color",
+    "SwitchCountry": "Japanese",
+    "SwitchProfessional": "Nurse/Christian Nuns, Medical Care/ Prayer",
+    "SwitchMajor": "Department of Nursing",
+    "Source": "./images/SanB/pic-bf-B-nc.png"
+  },
+  {
+    "Name": "SanC",
+    "SwitchColor": "light blue and silver gradient color",
+    "SwitchCountry": "Japanese",
+    "SwitchProfessional": "Nurse/Christian Nuns, Medical Care/Meditation",
+    "SwitchMajor": "Department of Nursing",
+    "Source": "./images/SanC/pic-bf-C-nc.png"
   },
   {
     "Name": "Sayoi",
