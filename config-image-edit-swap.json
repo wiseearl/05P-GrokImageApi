@@ -107,9 +107,17 @@
     "Name": "Kurumi",
     "SwitchColor": "white and skyblue gradient color",
     "SwitchCountry": "Japanese",
-    "SwitchProfessional": "Dentisit",
+    "SwitchProfessional": "Dentist",
     "SwitchMajor": "Department of English",
     "Source": "./images/Kurumi/pic-bfgrok-nc2.jpg"
+  },
+  {
+    "Name": "Mikami",
+    "SwitchColor": "silver color",
+    "SwitchCountry": "Japanese",
+    "SwitchProfessional": "English Teacher/Tony English Prinicipal",
+    "SwitchMajor": "Department of English",
+    "Source": "./images/Mikami/pic-bf-nc.png"
   },
   {
     "Name": "Momo",
@@ -134,6 +142,14 @@
     "SwitchProfessional": "Chief Financial Officier",
     "SwitchMajor": "Department of English",
     "Source": "./images/Jinguji/pic-bf.png"
+  },
+  {
+    "Name": "Kamiki",
+    "SwitchColor": "light red and light purple gradient color",
+    "SwitchCountry": "Japanese",
+    "SwitchProfessional": "Dentist, Teeth",
+    "SwitchMajor": "Dental Department",
+    "Source": "./images/Kamiki/pic-bf-nc.png"
   },
   {
     "Name": "Kana",
