@@ -216,3 +216,6 @@ key-sd-202603.txt
 /videos
 /prompt
 .facefusion/jobs
+
+# Downloaded third-party binary tools (auto-fetched by resolution.py)
+/tools

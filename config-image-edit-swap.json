@@ -20,7 +20,7 @@
     "SwitchColor": "red and purple gradient color",
     "SwitchCountry": "Japanese",
     "SwitchProfessional": "AI Engineer",
-    "SwitchMajor": "Department of Information Technology",
+    "SwitchMajor": "Department of English",
     "Source": "./images/Amatsuka/pic-bf-nc.jpg"
   },
   {
@@ -54,6 +54,14 @@
     "SwitchProfessional": "Music Band Vocalist",
     "SwitchMajor": "Department of Public Policy and Management",
     "Source": "./images/Ito/pic-bf-nc.jpg"
+  },
+  {
+    "Name": "Kaede",
+    "SwitchColor": "dimpink color",
+    "SwitchCountry": "Japanese",
+    "SwitchProfessional": "High school nursing teacher, Teaching and Nursing",
+    "SwitchMajor": "Department of Nursing",
+    "Source": "./images/Kaede/pic-bf.png"
   },
   {
     "Name": "Kalista",
@@ -126,6 +134,14 @@
     "SwitchProfessional": "Artist and Art Gallery Manager",
     "SwitchMajor": "Department of Finance",
     "Source": "./images/Momo/pic-bfgrok-nc.jpg"
+  },
+  {
+    "Name": "Myrielle",
+    "SwitchColor": "light blue and light purple gradient color",
+    "SwitchCountry": "French",
+    "SwitchProfessional": "Astronant and Space Engineer",
+    "SwitchMajor": "Department of Space Science and Engineering",
+    "Source": "./images/Myrielle/pic-bfgrok.jpg"
   },
   {
     "Name": "Jesielle",

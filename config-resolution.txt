@@ -1,0 +1,2 @@
+file=./images/Fuua/pic-bfgrok2-FuuaC.jpg
+rate=2
