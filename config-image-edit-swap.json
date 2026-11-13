@@ -40,6 +40,30 @@
     "Source": "./images/Fukada/pic-bf-nc.png"
   },
   {
+    "Name": "FuuaA",
+    "SwitchColor": "light red and silver gradient color",
+    "SwitchCountry": "Japanese",
+    "SwitchProfessional": "Nurse/Christian Nuns, Medical Care/Devotion",
+    "SwitchMajor": "Department of Nursing",
+    "Source": "./images/FuuaA/pic-bfgrok2-FuuaA.jpg"
+  },
+  {
+    "Name": "FuuaB",
+    "SwitchColor": "grey and silver gradient color",
+    "SwitchCountry": "Japanese",
+    "SwitchProfessional": "Nurse/Christian Nuns, Medical Care/ Prayer",
+    "SwitchMajor": "Department of Nursing",
+    "Source": "./images/FuuaB/pic-bfgrok2-FuuaB.jpg"
+  },
+  {
+    "Name": "FuuaC",
+    "SwitchColor": "light blue and silver gradient color",
+    "SwitchCountry": "Japanese",
+    "SwitchProfessional": "Nurse/Christian Nuns, Medical Care/Meditation",
+    "SwitchMajor": "Department of Nursing",
+    "Source": "./images/FuuaC/pic-bfgrok2-FuuaC.jpg"
+  },
+  {
     "Name": "Hayano",
     "SwitchColor": "red color",
     "SwitchCountry": "Japanese",
@@ -56,6 +80,70 @@
     "Source": "./images/Ito/pic-bf-nc.jpg"
   },
   {
+    "Name": "Mikami",
+    "SwitchColor": "silver color",
+    "SwitchCountry": "Japanese",
+    "SwitchProfessional": "English Teacher/Tony English Prinicipal",
+    "SwitchMajor": "Department of English",
+    "Source": "./images/Mikami/pic-bf-nc.png"
+  },
+  {
+    "Name": "Momo",
+    "SwitchColor": "tomato color",
+    "SwitchCountry": "Japanese",
+    "SwitchProfessional": "Artist and Art Gallery Manager",
+    "SwitchMajor": "Department of Finance",
+    "Source": "./images/Momo/pic-bfgrok-nc.jpg"
+  },
+  {
+    "Name": "Myrielle",
+    "SwitchColor": "light blue and light purple gradient color",
+    "SwitchCountry": "French",
+    "SwitchProfessional": "Astronant and Space Engineer",
+    "SwitchMajor": "Department of Space Science and Engineering",
+    "Source": "./images/Myrielle/pic-bfgrok.jpg"
+  },
+  {
+    "Name": "Hirose",
+    "SwitchColor": "blue color",
+    "SwitchCountry": "Australian",
+    "SwitchProfessional": "Singer of Pop and Church music",
+    "SwitchMajor": "Department of Music",
+    "Source": "./images/Hirose/pic-bf-nc.png"
+  },
+  {
+    "Name": "Jesielle",
+    "SwitchColor": "yellow color",
+    "SwitchCountry": "Australian White",
+    "SwitchProfessional": "Chief Financial Officier",
+    "SwitchMajor": "Department of English",
+    "Source": "./images/Jesielle/pic-bikini-hq-beach.jpg"
+  },
+  {
+    "Name": "Jinguji",
+    "SwitchColor": "yellow color",
+    "SwitchCountry": "Japanese",
+    "SwitchProfessional": "Chief Financial Officier",
+    "SwitchMajor": "Department of English",
+    "Source": "./images/Jinguji/pic-bf.png"
+  },
+  {
+    "Name": "Kamiki",
+    "SwitchColor": "light red and light purple gradient color",
+    "SwitchCountry": "Japanese",
+    "SwitchProfessional": "Dentist, Teeth",
+    "SwitchMajor": "Dental Department",
+    "Source": "./images/Kamiki/pic-bf-nc.png"
+  },
+  {
+    "Name": "Kana",
+    "SwitchColor": "jade color",
+    "SwitchCountry": "Japanese",
+    "SwitchProfessional": "Idol Artists",
+    "SwitchMajor": "Department of Dance",
+    "Source": "./images/Kana/pic-bf-nc.png"
+  },
+  {
     "Name": "Kaede",
     "SwitchColor": "dimpink color",
     "SwitchCountry": "Japanese",
@@ -70,6 +158,14 @@
     "SwitchProfessional": "News Anchor",
     "SwitchMajor": "Department of Business",
     "Source": "./images/Kalista/pic-bf-beach.jpg"
+  },
+  {
+    "Name": "Kana",
+    "SwitchColor": "glowing jade color",
+    "SwitchCountry": "Czech",
+    "SwitchProfessional": "Lawyer",
+    "SwitchMajor": "Department of International Business",
+    "Source": "./images/Kana/nc.jpg"
   },
   {
     "Name": "Kavina",
@@ -120,62 +216,6 @@
     "Source": "./images/Kurumi/pic-bfgrok-nc2.jpg"
   },
   {
-    "Name": "Mikami",
-    "SwitchColor": "silver color",
-    "SwitchCountry": "Japanese",
-    "SwitchProfessional": "English Teacher/Tony English Prinicipal",
-    "SwitchMajor": "Department of English",
-    "Source": "./images/Mikami/pic-bf-nc.png"
-  },
-  {
-    "Name": "Momo",
-    "SwitchColor": "tomato color",
-    "SwitchCountry": "Japanese",
-    "SwitchProfessional": "Artist and Art Gallery Manager",
-    "SwitchMajor": "Department of Finance",
-    "Source": "./images/Momo/pic-bfgrok-nc.jpg"
-  },
-  {
-    "Name": "Myrielle",
-    "SwitchColor": "light blue and light purple gradient color",
-    "SwitchCountry": "French",
-    "SwitchProfessional": "Astronant and Space Engineer",
-    "SwitchMajor": "Department of Space Science and Engineering",
-    "Source": "./images/Myrielle/pic-bfgrok.jpg"
-  },
-  {
-    "Name": "Jesielle",
-    "SwitchColor": "yellow color",
-    "SwitchCountry": "Australian White",
-    "SwitchProfessional": "Chief Financial Officier",
-    "SwitchMajor": "Department of English",
-    "Source": "./images/Jesielle/pic-bikini-hq-beach.jpg"
-  },
-  {
-    "Name": "Jinguji",
-    "SwitchColor": "yellow color",
-    "SwitchCountry": "Japanese",
-    "SwitchProfessional": "Chief Financial Officier",
-    "SwitchMajor": "Department of English",
-    "Source": "./images/Jinguji/pic-bf.png"
-  },
-  {
-    "Name": "Kamiki",
-    "SwitchColor": "light red and light purple gradient color",
-    "SwitchCountry": "Japanese",
-    "SwitchProfessional": "Dentist, Teeth",
-    "SwitchMajor": "Dental Department",
-    "Source": "./images/Kamiki/pic-bf-nc.png"
-  },
-  {
-    "Name": "Kana",
-    "SwitchColor": "jade color",
-    "SwitchCountry": "Japanese",
-    "SwitchProfessional": "Idol Artists",
-    "SwitchMajor": "Department of Dance",
-    "Source": "./images/Kana/pic-bf-nc.png"
-  },
-  {
     "Name": "Mitsuki",
     "SwitchColor": "black and red gradient color",
     "SwitchCountry": "Japanese",
@@ -189,7 +229,7 @@
     "SwitchCountry": "Japanese",
     "SwitchProfessional": "Internal medicine physician, weight management",
     "SwitchMajor": "Department of Business",
-    "Source": "./images/Ono/pic-bf-nc.png"
+    "Source": "./images/Ono/nc.png"
   },
   {
     "Name": "SanA",
@@ -238,6 +278,14 @@
     "SwitchProfessional": "Badminton professional players and coaches",
     "SwitchMajor": "Department of Physical Education",
     "Source": "./images/Shiramine/pic-bf-nc.jpg"
+  },
+  {
+    "Name": "Tia",
+    "SwitchColor": "gold and pink gradient color",
+    "SwitchCountry": "Japanese",
+    "SwitchProfessional": "Singing and dancing",
+    "SwitchMajor": "Department of Finance",
+    "Source": "./images/Tia/nc.png"
   },
   {
     "Name": "Yuzuriha",
